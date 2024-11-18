@@ -5,16 +5,16 @@ llm_analysis/
 │   │   ├── index.html       
 │   │   └── styles.css       
 │   └── src/           
-│       ├── App.js              # Main React component
-│       └── components/         # Other React components
-│           └── Whatever.js
+│       ├── App.js                  # Main React component
+│       └── components/             # Other React components
+│           └── StabilityAIData.js  # to display charts, tables, or summaries
 │
 ├── server/                  
 │   ├── app.py                  # Flask application with API endpoint handling
 │   ├── utilities/              # Utility functions for data processing
 │   │   ├── openai_utils.py     # idk whatever structure we want
-│   │   ├── anthropic_utils.py  
-│   │   ├── ---.py 
+│   │   ├── anthropic_utils.py 
+│   │   ├── stabilityai_utils.py 
 │   │   └── general_utils.py    # general stuff
 │   └── static/              
 │       ├── images/             # Generated plot images
@@ -22,7 +22,9 @@ llm_analysis/
 │
 ├── data/                    
 │   ├── raw/                    # Raw data 
+│   │   └── stability_ai_raw.json
 │   └── processed/              # Processed data files
+│       └── stability_ai_data.csv
 │
 ├── requirements.txt            # Python dependencies
 └── package.json                # Node.js dependencies
