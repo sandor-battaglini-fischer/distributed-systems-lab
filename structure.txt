@@ -1,0 +1,28 @@
+llm_analysis/
+│
+├── client/                  
+│   ├── public/                 
+│   │   ├── index.html       
+│   │   └── styles.css       
+│   └── src/           
+│       ├── App.js              # Main React component
+│       └── components/         # Other React components
+│           └── Whatever.js
+│
+├── server/                  
+│   ├── app.py                  # Flask application with API endpoint handling
+│   ├── utilities/              # Utility functions for data processing
+│   │   ├── openai_utils.py     # idk whatever structure we want
+│   │   ├── anthropic_utils.py  
+│   │   ├── ---.py 
+│   │   └── general_utils.py    # general stuff
+│   └── static/              
+│       ├── images/             # Generated plot images
+│       └── tables/             # Generated tables
+│
+├── data/                    
+│   ├── raw/                    # Raw data 
+│   └── processed/              # Processed data files
+│
+├── requirements.txt            # Python dependencies
+└── package.json                # Node.js dependencies
