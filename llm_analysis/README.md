@@ -11,7 +11,11 @@ This project is a web application built using React for the frontend and Flask f
 
 ### Installation
 
-1. **Install frontend dependencies:**
+1. **Install Node.js and npm:**
+
+   If you haven't installed Node.js and npm, download and install them from the [official Node.js website](https://nodejs.org/). This will also install npm, which is the package manager for Node.js.
+
+2. **Install frontend dependencies:**
 
    Navigate to the `client` directory and install the dependencies:
 
@@ -20,12 +24,28 @@ This project is a web application built using React for the frontend and Flask f
    npm install
    ```
 
-2. **Install backend dependencies:**
+3. **Set up Python virtual environment:**
 
-   Navigate to the `server` directory and install the dependencies using `pip`:
+   Navigate to the `server` directory and create a virtual environment:
 
    ```bash
    cd server
+   python -m venv venv
+   ```
+
+   Activate the virtual environment:
+
+   - On macOS and Linux:
+
+     ```bash
+     source venv/bin/activate
+     ```
+
+4. **Install backend dependencies:**
+
+   With the virtual environment activated, install the dependencies using `pip`:
+
+   ```bash
    pip install -r requirements.txt
    ```
 
@@ -33,7 +53,7 @@ This project is a web application built using React for the frontend and Flask f
 
 1. **Start the backend server:**
 
-   In the `server` directory, run:
+   In the `server` directory, ensure the virtual environment is activated, then run:
 
    ```bash
    python app.py
@@ -50,11 +70,6 @@ This project is a web application built using React for the frontend and Flask f
    ```
 
    This will start the React development server on `http://localhost:3000`.
-
-<!-- ### Deployment
-
-- **Frontend**: Build the frontend for production using `npm run build`. This will create a `build` folder with static files.
-- **Backend**: Deploy the Flask app using a WSGI server like Gunicorn or a platform like Heroku. -->
 
 ### Learn More
 
