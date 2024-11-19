@@ -471,3 +471,35 @@ button:active {
     min-height: 250px;
   }
 }
+
+.dashboard-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-controls .MuiFormControl-root {
+  margin-bottom: 16px;
+}
+
+.dashboard-controls .MuiChip-root {
+  transition: all 0.2s ease;
+}
+
+.dashboard-controls .MuiChip-root:hover {
+  transform: translateY(-1px);
+}
+
+.dashboard-controls .MuiPaper-root {
+  border: 1px solid var(--border-color);
+}
+
+.dashboard-controls .MuiDatePicker-root {
+  width: 100%;
+}
+
+/* Date picker dark mode compatibility */
+[class*='dark'] .MuiDatePicker-root {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
