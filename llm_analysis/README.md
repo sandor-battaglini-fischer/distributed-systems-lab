@@ -11,14 +11,7 @@ This project is a web application built using React for the frontend and Flask f
 
 ### Installation
 
-1. **Clone the repository:**
-
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
-
-2. **Install frontend dependencies:**
+1. **Install frontend dependencies:**
 
    Navigate to the `client` directory and install the dependencies:
 
@@ -27,7 +20,7 @@ This project is a web application built using React for the frontend and Flask f
    npm install
    ```
 
-3. **Install backend dependencies:**
+2. **Install backend dependencies:**
 
    Navigate to the `server` directory and install the dependencies using `pip`:
 
