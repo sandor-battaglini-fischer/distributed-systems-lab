@@ -503,3 +503,47 @@ button:active {
   background-color: var(--background-color);
   color: var(--text-color);
 }
+
+/* Add to existing CSS */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Add responsive drawer styles */
+@media (max-width: 600px) {
+  .MuiDrawer-paper {
+    width: 100% !important;
+  }
+}
+
+/* Add smooth transitions */
+.MuiDrawer-paper {
+  transition: transform 0.3s ease-in-out !important;
+}
+
+/* Add hover effects */
+.menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='dark'] .menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}

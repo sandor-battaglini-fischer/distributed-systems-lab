@@ -36,10 +36,10 @@ function GraphDisplay() {
       plotKey: 'figure1'
     },
     {
-      title: 'Failure Recovery Model',
-      description: 'Single incident recovery analysis',
+      title: 'Failure Recovery Patterns',
+      description: 'Analysis of status progression patterns across different services',
       icon: <QueryStatsIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
+      gridSize: 12,
       plotKey: 'figure2'
     },
     {

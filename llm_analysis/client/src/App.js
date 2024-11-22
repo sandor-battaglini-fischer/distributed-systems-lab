@@ -1,18 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Box, Paper, Typography, IconButton, Link } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
-import EmailIcon from '@mui/icons-material/Email';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
-import GraphDisplay from './components/GraphDisplay';
-import { useState, useEffect } from 'react';
+import About from './pages/About';
 import './App.css';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-reduced-motion: dark)').matches;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setDarkMode(prefersDark);
   }, []);
 
@@ -66,55 +65,17 @@ function App() {
     },
   });
 
-  const contributors = [
-    { name: 'Bálint László Szarvas', email: 'b.l.szarvas@student.vu.nl' },
-    { name: 'Nishanthi Srinivasan', email: 'n.srinivasan@student.vu.nl' },
-    { name: 'Sándor Battaglini-Fischer', email: 's.battaglini-fischer@student.vu.nl' }
-  ];
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className={`app ${darkMode ? 'dark' : 'light'}`}>
-        <div className="theme-toggle">
-          <button onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? '☀️' : '🌙'}
-          </button>
-        </div>
-        <Box className="dashboard-container">
-          {/* Left Sidebar */}
-          <Paper className="sidebar">
-            <div className="sidebar-content">
-              <Dashboard />
-            </div>
-            <div className="contributors">
-              <Typography variant="subtitle2" className="contributors-title">
-                Contributors
-              </Typography>
-              <ul className="contributors-list">
-                {contributors.map((contributor, index) => (
-                  <li key={index}>
-                    <span>{contributor.name}</span>
-                    <IconButton
-                      size="small"
-                      component={Link}
-                      href={`mailto:${contributor.email}`}
-                      className="contributor-email"
-                    >
-                      <EmailIcon fontSize="small" />
-                    </IconButton>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Paper>
-
-          {/* Right Content Area */}
-          <Paper className="main-content">
-            <GraphDisplay />
-          </Paper>
-        </Box>
-      </div>
+      <Router>
+        <Layout darkMode={darkMode} setDarkMode={setDarkMode}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </Layout>
+      </Router>
     </ThemeProvider>
   );
 }
