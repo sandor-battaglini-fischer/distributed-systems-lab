@@ -3,22 +3,37 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
-from scipy.stats import gmean
+from datetime import datetime
 
 warnings.filterwarnings('ignore')
 pd.set_option('display.max_columns', None)
 
-def load_and_preprocess_data(path):
+# Modularized Functions
+def load_and_preprocess_data(path, start_date, end_date):
     df = pd.read_csv(path)
+
+    # Convert the status columns to datetime and make them timezone-aware
     status_lst = ['investigating', 'identified', 'monitoring', 'resolved', 'postmortem', 'start']
     for status in status_lst:
         df[f'{status}_timestamp'] = pd.to_datetime(df[f'{status}_timestamp'])
-    
+
+    # Filter data within the start and end dates (both are tz-aware)
+    df = df[(df['investigating_timestamp'] >= start_date) & (df['postmortem_timestamp'] <= end_date)]
+
+    # Print to debug the filtered data
+    print("Filtered DataFrame:")
+    print(df)
+    print("Services present after filtering:")
+    for service in df.columns:
+        if service in ['API', 'ChatGPT', 'Labs', 'Playground', 'api.anthropic.com', 'claude.ai', 'console.anthropic.com', 'Character.AI']:
+            print(f"{service}: {df[service].sum()} incidents")
+
     # Rename columns to match what we expect for the rest of the analysis
     df = df.rename(columns={'API': 'API-OpenAI', 'ChatGPT': 'ChatGPT', 'Labs': 'DALL·E', 'Playground': 'Playground', 
                             'api.anthropic.com': 'API-Anthropic', 'claude.ai': 'Claude', 'console.anthropic.com': 'Console', 
                             'Character.AI': 'Character.AI'})
     return df
+
 
 def filter_corner_cases(df):
     count_lst = [0] * 5
@@ -36,10 +51,10 @@ def filter_corner_cases(df):
         if record['resolved_timestamp'] > record['postmortem_timestamp']:
             count_lst[3] += 1
             corner_cases = pd.concat([corner_cases, record], axis=0)
-    print(count_lst)
-    
-    corner_cases = corner_cases.T
-    return df.drop(corner_cases.index).reset_index(drop=True), corner_cases
+    print(f"Corner cases counts: {count_lst}")
+
+    df = df.drop(corner_cases.index).reset_index(drop=True)
+    return df
 
 def generate_status_count_table(df):
     count_dict = {}
@@ -64,6 +79,7 @@ def generate_status_count_table(df):
     return count_df
 
 def generate_service_status_table(df, service_lst):
+    df = df[[*service_lst, 'investigating_flag', 'identified_flag', 'monitoring_flag', 'resolved_flag', 'postmortem_flag']]
     dfs = {service: df[df[service] == 1] for service in service_lst}
     count_dict_lst = {}
 
@@ -97,6 +113,7 @@ def generate_service_percentage_table(case_df):
     case_df = case_df.drop(columns='sum_all').drop(index='sum').reset_index().rename(columns={'index': 'service'})
     return case_df.round(4)
 
+
 def generate_stacked_bar_plot(case_df):
     fig, ax = plt.subplots(figsize=(16, 10))
     barWidth = 0.85
@@ -107,40 +124,49 @@ def generate_stacked_bar_plot(case_df):
         ax.bar(case_df['service'], case_df[column], bottom=bottom, label=column, color=colors.pop(0), width=barWidth)
         for index, value in enumerate(case_df[column]):
             if value > 0:
-                ax.text(index, bottom[index] + value / 2, f'{value:.2%}', ha='center', va='center', color='white', fontsize=26)
+                ax.text(index, bottom[index] + value / 2, f'{value:.2%}', ha='center', va='center', color='white', fontsize=14)
         bottom = [sum(x) for x in zip(bottom, case_df[column])]
 
-    labels = [r'\textbf{S1-S3-S4}', r'\textbf{S1-S4}', r'\textbf{S1-S2-S3-S4}', r'\textbf{S2-S3-S4}', r'\textbf{S1-S2-S4}', r'\textbf{S2-S4}', r'\textbf{S4}', r'\textbf{S3-S4}', r'\textbf{All-with-S5}']
+    labels = [
+        'S1-S3-S4', 'S1-S4', 'S1-S2-S3-S4', 
+        'S2-S3-S4', 'S1-S2-S4', 'S2-S4',
+        'S4', 'S3-S4', 'All-with-S5'
+    ]
     reversed_labels = labels[::-1]
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(reversed(handles), reversed_labels, title=r'\textbf{Status Cases}', bbox_to_anchor=(1.01, 1.0), loc='upper left')
-    ax.set_xlabel(r'\textbf{Service}', fontsize=30)
-    ax.set_yticklabels([r'\textbf{0\%}', r'\textbf{20\%}', r'\textbf{40\%}', r'\textbf{60\%}', r'\textbf{80\%}', r'\textbf{100\%}'], fontsize=28)
-    plt.xticks(rotation=0)
+    ax.legend(reversed(handles), reversed_labels, title='Status Cases', bbox_to_anchor=(1.01, 1.0), loc='upper left')
+    ax.set_xlabel('Service', fontsize=20)
+    ax.set_ylabel('Percentage', fontsize=20)
+
+    y_tick_lst = ['0%', '20%', '40%', '60%', '80%', '100%']
+    ax.set_yticklabels(y_tick_lst, fontsize=16)
+
+    plt.xticks(fontsize=16)
     plt.tight_layout()
-    plt.savefig('figures/stacked_bar_plot.png')
+    plt.show()
 
-    
-if __name__ == '__main__':
-    # Main execution starts here
+
+# Single Function Wrapping All Functionality
+def incident_status_count(start_date, end_date, service_lst):
     path = 'data/clean/incident/2024-08-31/incident_stages.csv'
-    df = load_and_preprocess_data(path)
 
-    # Filtering corner cases
-    df, corner_cases = filter_corner_cases(df)
+    # Load and preprocess data
+    df = load_and_preprocess_data(path, start_date, end_date)
 
-    # Generate and print the count table
+    # Filter corner cases
+    df = filter_corner_cases(df)
+
+    # Generate and print the status count table
     count_df = generate_status_count_table(df)
-    print(count_df)
+    #print(count_df)
 
     # Generate incident status count by service
-    service_lst = ['API-OpenAI', 'ChatGPT', 'DALL·E', 'Playground', 'API-Anthropic', 'Claude', 'Console', 'Character.AI']
     case_df = generate_service_status_table(df, service_lst)
-    print(case_df)
+    #print(case_df)
 
     # Generate percentage table
     case_percentage_df = generate_service_percentage_table(case_df)
-    print(case_percentage_df)
+    #print(case_percentage_df)
 
     # Generate stacked bar plot
     generate_stacked_bar_plot(case_percentage_df)
