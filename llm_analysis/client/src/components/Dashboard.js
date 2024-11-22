@@ -19,7 +19,8 @@ function Dashboard() {
     'OpenAI': ['API', 'ChatGPT', 'DALL·E', 'Playground'],
     'Anthropic': ['API', 'Claude', 'Console'],
     'Character.AI': ['Character.AI'],
-    'Stability AI': ['Stable Diffusion']
+    'Stability AI': ['Stable Diffusion'],
+    'Google': ['Gemini', 'Gemini API', 'Bard']
   };
 
   const handleServiceToggle = (provider, service) => {
@@ -35,13 +36,34 @@ function Dashboard() {
     return selectedServices.includes(`${provider}:${service}`);
   };
 
-  const handleAnalyze = () => {
-    console.log('Analyzing with parameters:', {
-      startDate,
-      endDate,
-      selectedServices
-    });
-    // Add your analysis logic here
+  const handleAnalyze = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate,
+          endDate,
+          selectedServices,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Analysis result:', result);
+      
+      if (result.plots) {
+        console.log('Plots received:', result.plots);
+      }
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      alert('Failed to perform analysis. Please try again later.');
+    }
   };
 
   return (
