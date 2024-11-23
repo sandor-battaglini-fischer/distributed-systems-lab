@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
@@ -10,51 +12,70 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
     Analyze failure recovery patterns and generate stacked bar plot
     """
     try:
-        # Convert service IDs to service names
+        # Convert string dates to pandas datetime with UTC timezone
+        start_date = pd.to_datetime(start_date).tz_localize('UTC')
+        end_date = pd.to_datetime(end_date).tz_localize('UTC')
+        
+        # Convert service IDs to match exact CSV column names
         service_mapping = {
-            'OpenAI:API': 'API-OpenAI',
-            'OpenAI:ChatGPT': 'ChatGPT',
-            'OpenAI:DALL·E': 'DALL·E',
+            # OpenAI Services
             'OpenAI:Playground': 'Playground',
-            'Anthropic:API': 'API-Anthropic',
-            'Anthropic:Claude': 'Claude',
-            'Anthropic:Console': 'Console',
-            'Character.AI:Character.AI': 'Character.AI'
+            'OpenAI:API': 'API',
+            'OpenAI:Labs': 'Labs',
+            'OpenAI:ChatGPT': 'ChatGPT',
+            
+            # Anthropic Services (match exact column names from CSV)
+            'Anthropic:API': 'api.anthropic.com',
+            'Anthropic:Claude': 'claude.ai',
+            'Anthropic:Console': 'console.anthropic.com',
+            
+            # Character.AI Services
+            'Character.AI:Character.AI': 'Character.AI',
         }
 
-        services_to_analyze = [service_mapping[s] for s in selected_services if s in service_mapping]
-        
-        if not services_to_analyze:
-            raise ValueError("No valid services selected for analysis")
-
-        # Load data from the static directory
+        # Get available columns from CSV first
         data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
                                 'static', 'data', 'incident_stages.csv')
         
         if not os.path.exists(data_path):
             raise FileNotFoundError(f"Data file not found at {data_path}")
 
+        # Read the CSV and get available columns
         df = pd.read_csv(data_path)
-
-        # Convert timestamps
+        
+        # Convert timestamps and handle timezone
         status_columns = ['investigating', 'identified', 'monitoring', 'resolved', 'postmortem']
         for status in status_columns:
             df[f'{status}_timestamp'] = pd.to_datetime(df[f'{status}_timestamp'])
+            if df[f'{status}_timestamp'].dt.tz is None:
+                df[f'{status}_timestamp'] = df[f'{status}_timestamp'].dt.tz_localize('UTC')
+            else:
+                df[f'{status}_timestamp'] = df[f'{status}_timestamp'].dt.tz_convert('UTC')
 
         # Filter by date range
-        start_date = pd.to_datetime(start_date)
-        end_date = pd.to_datetime(end_date)
-        df = df[(df['investigating_timestamp'] >= start_date) & 
-                (df['postmortem_timestamp'] <= end_date)]
+        df = df[
+            (df['investigating_timestamp'] >= start_date) & 
+            (df['investigating_timestamp'] <= end_date)  # Changed from postmortem to investigating
+        ]
 
-        # Filter invalid sequences
-        valid_indices = (
-            (df['investigating_timestamp'] <= df['identified_timestamp']) &
-            (df['identified_timestamp'] <= df['monitoring_timestamp']) &
-            (df['monitoring_timestamp'] <= df['resolved_timestamp']) &
-            (df['resolved_timestamp'] <= df['postmortem_timestamp'])
-        )
-        df = df[valid_indices]
+        # Map selected services to CSV column names
+        services_to_analyze = []
+        for service in selected_services:
+            if service in service_mapping:
+                mapped_service = service_mapping[service]
+                if mapped_service in df.columns:
+                    services_to_analyze.append(mapped_service)
+                else:
+                    print(f"Warning: Mapped service {mapped_service} not found in CSV columns")
+            else:
+                print(f"Warning: No mapping found for service {service}")
+
+        if not services_to_analyze:
+            raise ValueError("No valid services selected for analysis")
+
+        # Print debug information
+        print("Selected services:", selected_services)
+        print("Mapped services:", services_to_analyze)
 
         # Calculate status combinations
         def get_status_combination(row):
@@ -68,18 +89,31 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
 
         df['status_combination'] = df.apply(get_status_combination, axis=1)
 
-        # Prepare data for visualization
-        service_combinations = {}
-        for service in services_to_analyze:
-            service_data = df[df[service] == 1]
-            combinations = service_data['status_combination'].value_counts()
-            total = combinations.sum()
-            service_combinations[service] = (combinations / total).to_dict()
+        # Set the style for the plot
+        plt.style.use('default')
+        sns.set_theme(style="whitegrid")
 
         # Create visualization
         fig, ax = plt.subplots(figsize=(16, 10))
         
         # Prepare data for stacked bar chart
+        service_combinations = {}
+        for service in services_to_analyze:
+            # Filter incidents where this service was affected
+            service_data = df[df[service] == 1]
+            if len(service_data) > 0:  # Only process if there's data
+                combinations = service_data['status_combination'].value_counts()
+                total = combinations.sum()
+                if total > 0:
+                    service_combinations[service] = (combinations / total).to_dict()
+                    print(f"Found {total} incidents for {service}")
+            else:
+                print(f"No incidents found for {service}")
+
+        if not service_combinations:
+            raise ValueError("No data found for any of the selected services in the given date range")
+
+        # Create stacked bar chart
         services = list(service_combinations.keys())
         all_combinations = sorted(list(set().union(*[set(d.keys()) for d in service_combinations.values()])))
         
@@ -90,7 +124,7 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
 
         # Create stacked bar chart
         bottom = np.zeros(len(services))
-        colors = sns.color_palette('tab10', n_colors=len(all_combinations))
+        colors = sns.color_palette("husl", n_colors=len(all_combinations))
         
         for i, combination in enumerate(all_combinations):
             values = [row[i] for row in data]
@@ -100,19 +134,24 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
             for j, v in enumerate(values):
                 if v > 0:
                     ax.text(j, bottom[j] + v/2, f'{v:.1%}', 
-                           ha='center', va='center', color='white')
+                           ha='center', va='center', color='white',
+                           fontweight='bold')
             bottom += values
 
         # Customize plot
-        ax.set_xlabel('Service', fontsize=20)
-        ax.set_ylabel('Percentage', fontsize=20)
-        ax.legend(title='Status Combinations', bbox_to_anchor=(1.01, 1.0), loc='upper left')
+        ax.set_xlabel('Service', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Percentage', fontsize=12, fontweight='bold')
+        ax.set_title('Status Combinations by Service', fontsize=14, pad=20, fontweight='bold')
+        ax.legend(title='Status Combinations', bbox_to_anchor=(1.05, 1.0), loc='upper left')
         
+        # Rotate x-axis labels for better readability
         plt.xticks(rotation=45, ha='right')
+        
+        # Adjust layout to prevent label cutoff
         plt.tight_layout()
 
         return fig
 
     except Exception as e:
         print(f"Error in failure recovery analysis: {str(e)}")
-        raise 
+        raise

@@ -1,1 +1,6 @@
-# Empty file to make the directory a Python package 
+
+import matplotlib
+matplotlib.use('Agg') 
+
+import logging
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING) 

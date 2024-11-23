@@ -26,10 +26,12 @@ import {
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 const drawerWidth = 240;
 
-function Layout({ children, darkMode, setDarkMode }) {
+function Layout({ children, toggleTheme }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const theme = useTheme();
@@ -135,22 +137,22 @@ function Layout({ children, darkMode, setDarkMode }) {
       <Box sx={{ p: 1, borderTop: 1, borderColor: 'divider' }}>
         <ListItem 
           button 
-          onClick={() => setDarkMode(!darkMode)}
+          onClick={() => toggleTheme()}
           sx={{ 
             borderRadius: 2,
             bgcolor: 'background.paper',
             border: 1,
             borderColor: 'divider',
             '&:hover': {
-              bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
             }
           }}
         >
           <ListItemIcon sx={{ minWidth: 40 }}>
-            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
           </ListItemIcon>
           <ListItemText 
-            primary={darkMode ? "Light Mode" : "Dark Mode"} 
+            primary={theme.palette.mode === 'dark' ? "Light Mode" : "Dark Mode"} 
             secondary="Toggle theme"
             primaryTypographyProps={{ noWrap: true }}
             secondaryTypographyProps={{ noWrap: true }}
@@ -158,6 +160,16 @@ function Layout({ children, darkMode, setDarkMode }) {
         </ListItem>
       </Box>
     </Box>
+  );
+
+  const themeToggle = (
+    <IconButton 
+      onClick={toggleTheme} 
+      color="inherit"
+      sx={{ ml: 'auto' }}
+    >
+      {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+    </IconButton>
   );
 
   return (
@@ -187,6 +199,7 @@ function Layout({ children, darkMode, setDarkMode }) {
           <Typography variant="h6" noWrap component="div">
             LLM Analysis
           </Typography>
+          {themeToggle}
         </Toolbar>
       </AppBar>
 

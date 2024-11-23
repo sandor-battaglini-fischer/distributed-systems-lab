@@ -14,19 +14,21 @@ import { motion } from 'framer-motion';
 import EmailIcon from '@mui/icons-material/Email';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const features = [
   {
-    title: 'Real-time Analysis',
-    description: 'Monitor and analyze LLM service performance in real-time with interactive visualizations.'
+    title: 'Comprehensive Insights',
+    description: 'Gain deep insights into the historicalperformance and reliability of various LLM services with our detailed analytics.'
   },
   {
-    title: 'Multi-service Support',
-    description: 'Compare and analyze multiple LLM services simultaneously across different providers.'
+    title: 'Multi-service Comparison',
+    description: 'Easily compare multiple LLM services to find the best fit for your needs.'
   },
   {
-    title: 'Historical Data',
-    description: 'Access and analyze historical performance data to identify trends and patterns.'
+    title: 'User-friendly Interface',
+    description: 'Navigate through our intuitive dashboard designed for both beginners and experts.'
   }
 ];
 
@@ -52,87 +54,241 @@ const team = [
     role: 'Developer',
     email: 's.battaglini-fischer@student.vu.nl',
     github: 'https://github.com/sandor-battaglini-fischer',
-    linkedin: 'https://linkedin.com/in/sandorbattaglinifischer',
+    linkedin: 'https://www.linkedin.com/in/s%C3%A1ndor-battaglini-fischer-619b90221/',
     image: '/team/sandor.jpg'
   }
 ];
 
+const llmServices = [
+  {
+    name: 'OpenAI',
+    statusUrl: 'https://status.openai.com/',
+    description: 'Status monitoring for OpenAI services including API, ChatGPT, DALL·E, and Playground.'
+  },
+  {
+    name: 'Anthropic',
+    statusUrl: 'https://status.anthropic.com/',
+    description: 'Status updates for Anthropic services including API, Claude, and Console.'
+  },
+  {
+    name: 'Character.AI',
+    statusUrl: 'https://status.character.ai/',
+    description: 'Service status and performance monitoring for Character.AI platform.'
+  },
+  {
+    name: 'Stability AI',
+    statusUrl: 'https://status.stability.ai/',
+    description: 'Status monitoring for Stability AI services including Stable Diffusion.'
+  },
+  {
+    name: 'Google AI',
+    statusUrl: 'https://status.cloud.google.com/',
+    description: 'Status updates for Google AI services including Gemini, Gemini API, and Bard.'
+  }
+];
+
 function About() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4 }}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <Typography variant="h3" gutterBottom align="center" sx={{ mb: 6 }}>
-          About LLM Analysis Dashboard
-        </Typography>
-
-        <Grid container spacing={4}>
-          {features.map((feature, index) => (
-            <Grid item xs={12} md={4} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2 }}
-              >
-                <Card 
-                  elevation={0}
-                  sx={{ 
-                    height: '100%',
-                    bgcolor: 'background.paper',
-                    border: 1,
-                    borderColor: 'divider',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      transition: 'transform 0.3s ease-in-out'
-                    }
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="h5" component="h2" gutterBottom>
-                      {feature.title}
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Paper 
-          elevation={0}
+        {/* Hero Section */}
+        <Box 
           sx={{ 
-            mt: 6, 
+            position: 'relative',
+            mb: 6,
             p: 4,
-            bgcolor: 'background.paper',
-            border: 1,
-            borderColor: 'divider'
+            borderRadius: 4,
+            background: theme => `linear-gradient(135deg, 
+              ${theme.palette.primary.main}20, 
+              ${theme.palette.secondary.main}20
+            )`,
+            overflow: 'hidden'
           }}
         >
-          <Typography variant="h4" gutterBottom>
-            Our Mission
-          </Typography>
-          <Typography variant="body1" paragraph>
-            The LLM Analysis Dashboard provides comprehensive insights into the performance and reliability of various Language Learning Model services. Our goal is to help developers and organizations make informed decisions about which LLM services best suit their needs.
-          </Typography>
-        </Paper>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Typography variant="h3" gutterBottom align="center">
+              LLM Analysis Dashboard
+            </Typography>
+            <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 4 }}>
+              Empowering developers with comprehensive LLM service insights
+            </Typography>
+          </motion.div>
+        </Box>
 
+        {/* Main Content Grid */}
+        <Grid container spacing={4}>
+          {/* Left Column - Mission & Features */}
+          <Grid item xs={12} md={6}>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 4,
+                  height: '100%',
+                  bgcolor: 'background.paper',
+                  borderRadius: 2,
+                  border: 1,
+                  borderColor: 'divider',
+                  backgroundImage: theme => 
+                    `linear-gradient(145deg, 
+                      ${theme.palette.mode === 'dark' ? 
+                        'rgba(16,39,68,0.6) 0%, rgba(16,39,68,0.3) 100%' : 
+                        'rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%'
+                    })`,
+                }}
+              >
+                <Typography variant="h4" gutterBottom>
+                  Our Mission
+                </Typography>
+                <Typography variant="body1" paragraph>
+                  The LLM Analysis Dashboard aims to empower developers and organizations by providing comprehensive insights into the performance and reliability of various Language Learning Model services.
+                </Typography>
+                <Divider sx={{ my: 3 }} />
+                <Typography variant="h5" gutterBottom>
+                  Key Features
+                </Typography>
+                <Grid container spacing={2}>
+                  {features.map((feature, index) => (
+                    <Grid item xs={12} key={index}>
+                      <Card 
+                        elevation={0}
+                        sx={{ 
+                          p: 2,
+                          bgcolor: 'background.card',
+                          borderRadius: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          transition: 'all 0.3s ease-in-out',
+                          '&:hover': {
+                            transform: 'translateX(8px)',
+                            boxShadow: theme.shadows[4],
+                          }
+                        }}
+                      >
+                        <Typography variant="h6" gutterBottom>
+                          {feature.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {feature.description}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Paper>
+            </motion.div>
+          </Grid>
+
+          {/* Right Column - Services Status */}
+          <Grid item xs={12} md={6}>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 4,
+                  height: '100%',
+                  bgcolor: 'background.paper',
+                  borderRadius: 2,
+                  border: 1,
+                  borderColor: 'divider',
+                  backgroundImage: theme => 
+                    `linear-gradient(145deg, 
+                      ${theme.palette.mode === 'dark' ? 
+                        'rgba(16,39,68,0.6) 0%, rgba(16,39,68,0.3) 100%' : 
+                        'rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%'
+                    })`,
+                }}
+              >
+                <Typography variant="h4" gutterBottom>
+                  Data Sources
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  {llmServices.map((service, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + index * 0.1 }}
+                    >
+                      <Card 
+                        elevation={0}
+                        sx={{ 
+                          mb: 2,
+                          bgcolor: 'background.card',
+                          borderRadius: 2,
+                          border: 1,
+                          borderColor: 'divider',
+                          transition: 'all 0.3s ease-in-out',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: theme.shadows[4],
+                          }
+                        }}
+                      >
+                        <CardContent>
+                          <Typography variant="h6" gutterBottom>
+                            {service.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            {service.description}
+                          </Typography>
+                          <Link 
+                            href={service.statusUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              color: 'primary.main',
+                              textDecoration: 'none',
+                              '&:hover': {
+                                textDecoration: 'underline',
+                              }
+                            }}
+                          >
+                            View Status Page
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </Box>
+              </Paper>
+            </motion.div>
+          </Grid>
+        </Grid>
+
+        {/* Team Section */}
         <Box sx={{ mt: 6 }}>
-          <Typography variant="h4" gutterBottom align="center">
+          <Typography variant="h4" gutterBottom align="center" sx={{ mb: 4 }}>
             Meet the Team
           </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
+          <Grid container spacing={4}>
             {team.map((member, index) => (
-              <Grid item xs={12} md={4} key={index}>
+              <Grid item xs={12} sm={6} md={4} key={index}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
                 >
                   <Card 
                     elevation={0} 
@@ -258,6 +414,16 @@ function About() {
               </Grid>
             ))}
           </Grid>
+        </Box>
+
+        {/* Footer */}
+        <Box sx={{ mt: 6, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            Disclaimer: The information provided by the LLM Analysis Dashboard is for general informational purposes only.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            © {new Date().getFullYear()} LLM Analysis Dashboard. All rights reserved.
+          </Typography>
         </Box>
       </motion.div>
     </Box>

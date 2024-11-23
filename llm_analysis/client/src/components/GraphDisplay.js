@@ -1,175 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { Paper, Typography, Grid, CircularProgress } from '@mui/material';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
-import StackedLineChartIcon from '@mui/icons-material/StackedLineChart';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import DataUsageIcon from '@mui/icons-material/DataUsage';
-import CompareIcon from '@mui/icons-material/Compare';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import BubbleChartIcon from '@mui/icons-material/BubbleChart';
-import TableChartIcon from '@mui/icons-material/TableChart';
+import React, { useState, useEffect, forwardRef } from 'react';
+import { Box, Paper, CircularProgress, Typography } from '@mui/material';
 
-function GraphDisplay() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const plotConfigs = {
+  figure1: {
+    title: 'Monthly Overview',
+    description: 'Monthly distribution of incidents and outages'
+  },
+  figure2: {
+    title: 'Failure Recovery Analysis',
+    description: 'Status progression patterns across services'
+  },
+  figure3: {
+    title: 'Status Combinations',
+    description: 'Common status transition patterns'
+  }
+};
+
+const GraphDisplay = forwardRef(({ loading }, ref) => {
   const [plots, setPlots] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
 
-  // Function to refresh plots when new analysis is done
-  const refreshPlots = (newPlots) => {
-    setPlots(newPlots);
-    setLoading(false);
-  };
+  useEffect(() => {
+    setImageErrors({});
+  }, [plots]);
 
-  // Add error handling for image loading
-  const handleImageError = (e) => {
-    e.target.src = '/placeholder.png';
-    console.error(`Failed to load image: ${e.target.src}`);
-  };
-
-  const graphs = [
-    {
-      title: 'Monthly Website Visits, Incident and Outages',
-      description: 'Monthly patterns of visits, incidents, and outages',
-      icon: <TimelineIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 12,
-      plotKey: 'figure1'
-    },
-    {
-      title: 'Failure Recovery Patterns',
-      description: 'Analysis of status progression patterns across different services',
-      icon: <QueryStatsIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 12,
-      plotKey: 'figure2'
-    },
-    {
-      title: 'Status Combinations',
-      description: 'Presence of different status combinations (GENERAL)',
-      icon: <StackedLineChartIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure3'
-    },
-    {
-      title: 'Failure Resolution Activities',
-      description: 'Time spent on Investigating, Repairing and Checking (GENERAL)',
-      icon: <DataUsageIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure4'
-    },
-    {
-      title: 'Mean Time to Resolve',
-      description: 'Distribution of mean time (hours) to resolve (GENERAL)',
-      icon: <AccessTimeIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure5'
-    },
-    {
-      title: 'Mean Time Between Failures',
-      description: 'Distribution of mean time (days) between failures (GENERAL)',
-      icon: <CompareIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure6'
-    },
-    {
-      title: 'ECDF of MTTR per Provider',
-      description: 'Empirical distribution of mean time to resolve (PROVIDER)',
-      icon: <BarChartIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure7'
-    },
-    {
-      title: 'ECDF of MTBF per Provider',
-      description: 'Empirical distribution of mean time between failures (PROVIDER)',
-      icon: <BarChartIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure8'
-    },
-    {
-      title: 'Temporal Distribution of Incidents',
-      description: 'Distribution by hour of day (PDT time)',
-      icon: <TimelineIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 12,
-      plotKey: 'figure9'
-    },
-    {
-      title: 'Auto-correlations with Incidents',
-      description: 'Autocorrelations at different time granularities',
-      icon: <BubbleChartIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure10'
-    },
-    {
-      title: 'Service Daily Availability',
-      description: 'Scaled outage minutes percentage (GENERAL)',
-      icon: <QueryStatsIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 6,
-      plotKey: 'figure11'
-    },
-    {
-      title: 'Co-occurrence Outages',
-      description: 'Matrix of outages co-occurrence for all services',
-      icon: <TableChartIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 12,
-      plotKey: 'figure12'
-    },
-    {
-      title: 'Conditional Probability Matrix',
-      description: 'Conditional probability of co-occurrence outages',
-      icon: <TableChartIcon sx={{ fontSize: 30, opacity: 0.5 }} />,
-      gridSize: 12,
-      plotKey: 'figure13'
+  React.useImperativeHandle(ref, () => ({
+    refreshPlots: (newPlots) => {
+      setPlots(newPlots);
+      setImageErrors({});
     }
-  ];
+  }));
+
+  const handleImageError = (figureId) => {
+    console.error(`Failed to load image: ${plots[figureId]}`);
+    setImageErrors(prev => ({
+      ...prev,
+      [figureId]: true
+    }));
+  };
+
+  const handleImageLoad = (figureId) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [figureId]: false
+    }));
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Create placeholder boxes for all possible figures
+  const allFigures = Object.keys(plotConfigs);
 
   return (
-    <div className="graphs-section">
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-          <CircularProgress />
-        </div>
-      )}
-      
-      {error && (
-        <Typography color="error" align="center" gutterBottom>
-          {error}
-        </Typography>
-      )}
+    <Box sx={{ 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: 3,
+      p: 3
+    }}>
+      {allFigures.map((figureId) => (
+        <Paper
+          key={figureId}
+          elevation={3}
+          sx={{
+            p: 2,
+            backgroundColor: 'background.paper',
+            borderRadius: 2,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            minHeight: '300px',
+            transition: 'all 0.3s ease-in-out',
+            '&:hover': {
+              transform: plots[figureId] ? 'translateY(-4px)' : 'none',
+              boxShadow: plots[figureId] ? 8 : 3
+            }
+          }}
+        >
+          <Box>
+            <Typography variant="h6" fontWeight="bold" color="primary">
+              {plotConfigs[figureId].title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {plotConfigs[figureId].description}
+            </Typography>
+          </Box>
 
-      <Grid container spacing={2}>
-        {graphs.map((graph, index) => (
-          <Grid item xs={12} md={graph.gridSize} key={index}>
-            <Paper className="graph-card">
-              <div className="graph-header">
-                {graph.icon}
-                <div className="graph-info">
-                  <Typography variant="h6" className="graph-title">
-                    {`Figure ${index + 1}: ${graph.title}`}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {graph.description}
-                  </Typography>
-                </div>
-              </div>
-              <div className="graph-image-container">
-                {plots[graph.plotKey] ? (
-                  <img 
-                    src={`http://localhost:5000${plots[graph.plotKey]}`}
-                    alt={graph.title}
-                    className="graph-image"
-                    onError={handleImageError}
-                  />
-                ) : (
-                  <div className="graph-placeholder">
-                    No data available
-                  </div>
-                )}
-              </div>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
-    </div>
+          {plots[figureId] ? (
+            imageErrors[figureId] ? (
+              <Box 
+                display="flex" 
+                justifyContent="center" 
+                alignItems="center" 
+                flexGrow={1}
+              >
+                <Typography color="error">
+                  Failed to load image. Please try refreshing the analysis.
+                </Typography>
+              </Box>
+            ) : (
+              <Box 
+                sx={{ 
+                  flexGrow: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <img
+                  src={plots[figureId]}
+                  alt={`${plotConfigs[figureId].title}`}
+                  onError={() => handleImageError(figureId)}
+                  onLoad={() => handleImageLoad(figureId)}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    borderRadius: '8px'
+                  }}
+                />
+              </Box>
+            )
+          ) : (
+            <Box 
+              display="flex" 
+              justifyContent="center" 
+              alignItems="center"
+              flexGrow={1}
+              sx={{ 
+                bgcolor: 'background.default',
+                borderRadius: 1,
+                p: 2,
+                opacity: 0.7
+              }}
+            >
+              <Typography color="text.secondary" align="center">
+                Select services and run analysis to generate visualization
+              </Typography>
+            </Box>
+          )}
+        </Paper>
+      ))}
+    </Box>
   );
-}
+});
+
+GraphDisplay.displayName = 'GraphDisplay';
 
 export default GraphDisplay; 

@@ -163,3 +163,47 @@ cython_debug/
 
 # DS store files
 .DS_Store
+
+# Project specific
+llm_analysis/backend/venv/
+llm_analysis/client/node_modules/
+llm_analysis/client/build/
+llm_analysis/server/static/
+llm_analysis/server/static/plots/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# System files
+.DS_Store
+*/.DS_Store
+**/.DS_Store
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development
+*.sqlite
+*.db
+
+# Cache
+__pycache__/
+.pytest_cache/
+*.pyc
+.cache/
+
+# Coverage reports
+coverage/
+.coverage
+htmlcov/
+*.png
