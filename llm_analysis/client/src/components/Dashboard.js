@@ -1,19 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, 
   Paper,
   Chip,
   Box,
-  Divider,
   TextField,
-  Button
+  Button,
+  Slide,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Collapse,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
-import AnalyticsIcon from '@mui/icons-material/Analytics';
+import {
+  AnalyticsOutlined as AnalyticsIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  DateRange as DateRangeIcon,
+  Apps as AppsIcon
+} from '@mui/icons-material';
+import GraphDisplay from './GraphDisplay';
 
 function Dashboard() {
   const [selectedServices, setSelectedServices] = useState([]);
   const [startDate, setStartDate] = useState('2023-08-01');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+      if (window.scrollY > 100) {
+        setControlsOpen(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const providers = {
     'OpenAI': ['API', 'ChatGPT', 'DALL·E', 'Playground'],
@@ -56,6 +84,7 @@ function Dashboard() {
 
       const result = await response.json();
       console.log('Analysis result:', result);
+      setControlsOpen(false);
       
       if (result.plots) {
         console.log('Plots received:', result.plots);
@@ -67,115 +96,184 @@ function Dashboard() {
   };
 
   return (
-    <div className="dashboard-controls">
-      <Typography variant="h6" gutterBottom>
-        LLM Service Analysis
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-
-      {/* Date Range Selection */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, bgcolor: 'background.default' }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Analysis Period
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            label="Start Date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            fullWidth
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            fullWidth
-          />
-        </Box>
-      </Paper>
-
-      {/* Service Selection */}
-      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Select Services to Analyze
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {Object.entries(providers).map(([provider, services]) => (
-            <Box key={provider} sx={{ width: '100%' }}>
-              <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
-                {provider}
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {services.map((service) => (
-                  <Chip
-                    key={`${provider}:${service}`}
-                    label={service}
-                    onClick={() => handleServiceToggle(provider, service)}
-                    color={isServiceSelected(provider, service) ? "primary" : "default"}
-                    variant={isServiceSelected(provider, service) ? "filled" : "outlined"}
+    <Box sx={{ height: '100%', mt: -3, pt: 3 }}>
+      <Slide appear={false} direction="down" in={!scrolled}>
+        <AppBar 
+          position="sticky" 
+          color="inherit" 
+          elevation={0}
+          sx={{ 
+            borderBottom: 1, 
+            borderColor: 'divider',
+            bgcolor: 'background.default'
+          }}
+        >
+          <Toolbar 
+            onClick={() => !isMobile && setControlsOpen(!controlsOpen)}
+            sx={{ 
+              cursor: isMobile ? 'default' : 'pointer',
+              '&:hover': !isMobile ? {
+                bgcolor: 'action.hover'
+              } : {},
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 2
+            }}
+          >
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              flex: 1
+            }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                Analysis Controls
+                {!isMobile && (
+                  <KeyboardArrowDownIcon 
                     sx={{ 
-                      cursor: 'pointer',
-                      '&:hover': {
-                        backgroundColor: isServiceSelected(provider, service) 
-                          ? 'primary.dark' 
-                          : 'action.hover'
-                      }
-                    }}
+                      transform: controlsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease'
+                    }} 
                   />
-                ))}
+                )}
+              </Typography>
+            </Box>
+
+            {isMobile && (
+              <IconButton onClick={() => setControlsOpen(!controlsOpen)}>
+                <KeyboardArrowDownIcon 
+                  sx={{ 
+                    transform: controlsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s ease'
+                  }} 
+                />
+              </IconButton>
+            )}
+          </Toolbar>
+          
+          <Collapse in={controlsOpen}>
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                mb: 2,
+                flexWrap: 'wrap',
+                alignItems: 'flex-start'
+              }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AnalyticsIcon />}
+                  onClick={handleAnalyze}
+                  disabled={selectedServices.length === 0}
+                  sx={{ 
+                    minWidth: 150,
+                    height: 'fit-content',
+                    alignSelf: 'flex-start',
+                    boxShadow: 2,
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3
+                    }
+                  }}
+                >
+                  Analyze
+                </Button>
+
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 2, 
+                    border: 1, 
+                    borderColor: 'divider',
+                    minWidth: 280
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <DateRangeIcon color="action" sx={{ mr: 1 }} />
+                    <Typography variant="subtitle2">Analysis Period</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      label="Start Date"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      size="small"
+                      fullWidth
+                    />
+                    <TextField
+                      label="End Date"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      size="small"
+                      fullWidth
+                    />
+                  </Box>
+                </Paper>
+
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 2, 
+                    border: 1, 
+                    borderColor: 'divider',
+                    flexGrow: 1
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <AppsIcon color="action" sx={{ mr: 1 }} />
+                    <Typography variant="subtitle2">Select Services</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {Object.entries(providers).map(([provider, services]) => (
+                      <Box key={provider}>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: 'text.secondary',
+                            display: 'block',
+                            mb: 1
+                          }}
+                        >
+                          {provider}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {services.map((service) => (
+                            <Chip
+                              key={`${provider}:${service}`}
+                              label={service}
+                              onClick={() => handleServiceToggle(provider, service)}
+                              color={isServiceSelected(provider, service) ? "primary" : "default"}
+                              variant={isServiceSelected(provider, service) ? "filled" : "outlined"}
+                              size="small"
+                              sx={{
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: 1
+                                }
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
               </Box>
             </Box>
-          ))}
-        </Box>
-      </Paper>
+          </Collapse>
+        </AppBar>
+      </Slide>
 
-      {/* Selected Services Summary */}
-      {selectedServices.length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-            Selected Services: {selectedServices.length}
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {selectedServices.map((serviceId) => {
-              const [provider, service] = serviceId.split(':');
-              return (
-                <Chip
-                  key={serviceId}
-                  label={`${service} (${provider})`}
-                  size="small"
-                  onDelete={() => handleServiceToggle(provider, service)}
-                  color="primary"
-                />
-              );
-            })}
-          </Box>
-        </Box>
-      )}
-
-      {/* Analyze Button */}
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AnalyticsIcon />}
-        onClick={handleAnalyze}
-        disabled={selectedServices.length === 0}
-        sx={{ 
-          mt: 3,
-          width: '100%',
-          py: 1.5,
-          textTransform: 'none',
-          fontWeight: 500
-        }}
-      >
-        Analyze Selected Services
-      </Button>
-    </div>
+      <Box sx={{ mt: 2 }}>
+        <GraphDisplay />
+      </Box>
+    </Box>
   );
 }
 

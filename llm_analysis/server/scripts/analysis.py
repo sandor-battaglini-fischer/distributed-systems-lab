@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from .analysis_modules.failure_recovery import analyze_failure_recovery
 
 PLOTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'plots')
 
@@ -19,8 +20,7 @@ def generate_monthly_overview(start_date, end_date, services):
 
 def generate_failure_recovery(start_date, end_date, services):
     """Generate failure recovery model analysis"""
-    fig, ax = plt.subplots(figsize=(8, 6))
-
+    fig = analyze_failure_recovery(start_date, end_date, services)
     return save_plot(fig, 'figure2.png')
 
 def generate_status_combinations(start_date, end_date, services):
