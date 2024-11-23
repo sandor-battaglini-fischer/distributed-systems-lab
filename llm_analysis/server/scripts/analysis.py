@@ -13,12 +13,31 @@ def save_plot(fig, plot_type, start_date, end_date, services):
     start_str = pd.to_datetime(start_date).strftime('%Y%m%d')
     end_str = pd.to_datetime(end_date).strftime('%Y%m%d')
     
-    # Create service string for filename
-    service_str = '_'.join(s.split(':')[1] for s in services)[:50]  # Limit length
+    # Create more descriptive service string for filename
+    service_names = []
+    for service in services:
+        provider, name = service.split(':')
+        if provider == 'OpenAI':
+            service_names.append(f'OpenAI_{name}')
+        elif provider == 'Anthropic':
+            if name == 'API':
+                service_names.append('Anthropic_API')
+            elif name == 'Claude':
+                service_names.append('Anthropic_Claude')
+            elif name == 'Console':
+                service_names.append('Anthropic_Console')
+        elif provider == 'Character.AI':
+            service_names.append('CharacterAI')
+        elif provider == 'Stability AI':
+            service_names.append('StabilityAI')
+        elif provider == 'Google':
+            service_names.append(f'Google_{name}')
+    
+    service_str = '-'.join(service_names)
     
     # Create unique filename with timestamp
     timestamp = datetime.now().strftime('%H%M%S')
-    filename = f'{plot_type}_{start_str}_{end_str}_{service_str}_{timestamp}.png'
+    filename = f'{plot_type}_{start_str}_{end_str}__{service_str}__{timestamp}.png'
     
     # Save the plot
     plt.savefig(os.path.join(PLOTS_DIR, filename), bbox_inches='tight', dpi=300)

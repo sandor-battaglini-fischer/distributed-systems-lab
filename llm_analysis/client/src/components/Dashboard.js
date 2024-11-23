@@ -413,7 +413,13 @@ function Dashboard() {
       </Slide>
 
       <Box sx={{ mt: 2 }}>
-        <GraphDisplay ref={graphDisplayRef} loading={loading} />
+        <GraphDisplay 
+          ref={graphDisplayRef} 
+          loading={loading} 
+          selectedServices={selectedServices} 
+          startDate={startDate} 
+          endDate={endDate} 
+        />
       </Box>
     </Box>
   );
