@@ -67,7 +67,6 @@ def analyze_monthly_overview(start_date, end_date, selected_services):
             if service_id in service_mapping:
                 provider_services[provider].append(service_mapping[service_id])
 
-        # Create the plot
         fig, axs = plt.subplots(1, len(provider_services), figsize=(16, 8))
         if len(provider_services) == 1:
             axs = [axs]
@@ -82,7 +81,6 @@ def analyze_monthly_overview(start_date, end_date, selected_services):
             if not services:
                 continue
 
-            # Get incidents for this provider's services
             provider_df = df[df[services].any(axis=1)].copy()
             provider_df['Day'] = provider_df['investigating_timestamp'].dt.day_name()
             provider_df['Day'] = pd.Categorical(

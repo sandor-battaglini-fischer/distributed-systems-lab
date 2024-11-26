@@ -22,11 +22,11 @@ PLOTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', '
 
 def save_plot(fig, plot_type, start_date, end_date, services):
     """Helper function to save plots with consistent formatting and unique names"""
-    # Format dates for filename
+    # Format dates
     start_str = pd.to_datetime(start_date).strftime('%Y%m%d')
     end_str = pd.to_datetime(end_date).strftime('%Y%m%d')
     
-    # Create more descriptive service string for filename
+
     service_names = []
     for service in services:
         provider, name = service.split(':')
@@ -48,11 +48,10 @@ def save_plot(fig, plot_type, start_date, end_date, services):
     
     service_str = '-'.join(service_names)
     
-    # Create unique filename with timestamp
+    # Create filename with timestamp
     timestamp = datetime.now().strftime('%H%M%S')
     filename = f'{plot_type}_{start_str}_{end_str}__{service_str}__{timestamp}.png'
     
-    # Save the plot
     plt.savefig(os.path.join(PLOTS_DIR, filename), bbox_inches='tight', dpi=300)
     plt.close(fig)
     return f'/static/plots/{filename}'
@@ -316,5 +315,4 @@ def generate_mtbf_provider(start_date, end_date, services):
         print(f"Error generating MTBF provider analysis: {e}")
         return None
 
-# Ensure plots directory exists when module is imported
 os.makedirs(PLOTS_DIR, exist_ok=True) 

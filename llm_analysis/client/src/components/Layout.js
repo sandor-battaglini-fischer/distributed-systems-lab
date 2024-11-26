@@ -183,16 +183,16 @@ function Layout({ children, toggleTheme }) {
           boxShadow: 'none',
           borderBottom: 1,
           borderColor: 'divider',
-          zIndex: (theme) => theme.zIndex.drawer + 2
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          backdropFilter: 'blur(10px)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
@@ -241,15 +241,15 @@ function Layout({ children, toggleTheme }) {
           height: '100vh',
           overflow: 'auto',
           position: 'relative',
-          pt: { xs: 8, sm: 3 },
-          px: 3,
-          pb: 3
+          pt: { xs: 7, sm: 2 },
+          px: { xs: 1, sm: 2, md: 3 },
+          pb: { xs: 2, sm: 3 }
         }}
       >
         <Box sx={{ 
           position: 'sticky',
           top: { xs: 56, sm: 0 },
-          zIndex: (theme) => theme.zIndex.drawer
+          zIndex: (theme) => theme.zIndex.drawer - 1
         }}>
           <AnimatePresence mode="wait">
             <motion.div
@@ -258,7 +258,6 @@ function Layout({ children, toggleTheme }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
-              style={{ overflow: 'hidden' }}
             >
               {children}
             </motion.div>

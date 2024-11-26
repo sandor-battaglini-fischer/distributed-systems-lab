@@ -34,6 +34,7 @@ logging.getLogger('PIL').setLevel(logging.WARNING)
 app = Flask(__name__, static_folder='../client/build', static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+app.config['HOST'] = '0.0.0.0'  
 
 # Ensure plots directory exists
 PLOTS_DIR = os.path.join(os.path.dirname(__file__), 'static', 'plots')
@@ -56,10 +57,9 @@ def analyze():
             logger.error('Missing required fields')
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
-        # Generate plots
+
         plots = {}
         try:
-            # Clean up old plots first
             cleanup_old_plots()
 
             # Days of Week Distribution (figure1)
@@ -122,7 +122,7 @@ def analyze():
             if cooccurrence_matrix_path:
                 plots['figure12'] = cooccurrence_matrix_path
 
-            # Verify that the files exist
+            # Verify files exist
             for plot_name, plot_path in plots.items():
                 full_path = os.path.join(os.path.dirname(__file__), plot_path.lstrip('/'))
                 if not os.path.exists(full_path):

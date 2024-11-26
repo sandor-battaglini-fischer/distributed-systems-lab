@@ -24,7 +24,8 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   DateRange as DateRangeIcon,
   Apps as AppsIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import GraphDisplay from './GraphDisplay';
@@ -50,18 +51,22 @@ function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const graphDisplayRef = useRef(null);
+  const controlsRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 50;
-      setScrolled(isScrolled);
-      
-      if (isScrolled && controlsOpen) {
+      if (!controlsRef.current) return;
+
+      const controlsRect = controlsRef.current.getBoundingClientRect();
+      const graphsTop = window.innerHeight * 0.3; // Close when graphs reach 30% of viewport height
+
+      // Close controls when graphs would overlap with them
+      if (controlsRect.bottom > graphsTop && controlsOpen) {
         setControlsOpen(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [controlsOpen]);
 
@@ -188,8 +193,8 @@ function Dashboard() {
   return (
     <Box sx={{ 
       height: '100%', 
-      mt: -3, 
-      pt: 3,
+      mt: { xs: -2, sm: -3 },
+      pt: { xs: 2, sm: 3 },
       position: 'relative',
       '&::before': {
         content: '""',
@@ -202,237 +207,311 @@ function Dashboard() {
         zIndex: -1,
       }
     }}>
-      <Slide appear={false} direction="down" in={!scrolled}>
-        <AppBar 
-          position="sticky" 
+      <Box
+        ref={controlsRef}
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: theme => theme.zIndex.drawer + 3,
+          mb: 2,
+        }}
+      >
+        <Paper
           elevation={scrolled ? 2 : 0}
-          sx={{ 
-            borderBottom: 1, 
-            borderColor: 'divider',
-            backgroundColor: theme => alpha(theme.palette.background.paper, 0.7),
-            backdropFilter: 'blur(10px)',
+          sx={{
+            position: 'relative',
+            borderRadius: '0 0 16px 16px',
+            overflow: 'visible',
             transition: 'all 0.3s ease-in-out',
           }}
         >
-          <Toolbar>
-            <Box sx={{ 
-              display: 'flex', 
+          <Box
+            onClick={() => setControlsOpen(!controlsOpen)}
+            sx={{
+              position: 'absolute',
+              bottom: -24,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 48,
+              height: 24,
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              gap: 2
-            }}>
-              <Typography variant="h6" sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                color: 'text.primary',
-                fontSize: scrolled ? '1rem' : '1.25rem',
-                transition: 'all 0.3s ease-in-out',
-              }}>
-                Analysis Controls
-                {scrolled && (
-                  <motion.div
-                    animate={{ 
-                      rotate: controlsOpen ? 180 : 0,
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <KeyboardArrowDownIcon />
-                  </motion.div>
-                )}
-              </Typography>
+              justifyContent: 'center',
+              cursor: 'pointer',
+              bgcolor: 'background.paper',
+              borderRadius: '0 0 24px 24px',
+              border: 1,
+              borderTop: 0,
+              borderColor: 'divider',
+              transition: 'all 0.3s ease-in-out',
+              '&:hover': {
+                bgcolor: 'action.hover',
+                transform: 'translateX(-50%) translateY(2px)',
+              },
+              zIndex: 1,
+            }}
+          >
+            <motion.div
+              animate={{ rotate: controlsOpen ? 0 : 180 }}
+              transition={{ duration: 0.3 }}
+            >
+              <KeyboardArrowUpIcon 
+                fontSize="small" 
+                sx={{ 
+                  color: 'text.secondary',
+                  transition: 'color 0.3s ease-in-out',
+                  '&:hover': {
+                    color: 'primary.main',
+                  }
+                }}
+              />
+            </motion.div>
+          </Box>
 
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Tooltip title="Reset Analysis">
-                  <IconButton 
-                    onClick={handleReset}
-                    disabled={loading}
-                    sx={{
-                      transition: 'all 0.2s ease-in-out',
-                      '&:hover': {
-                        transform: 'rotate(180deg)',
-                      }
-                    }}
-                  >
-                    <RefreshIcon />
-                  </IconButton>
-                </Tooltip>
-                <motion.div
-                  whileHover={{ scale: isFormValid() ? 1.02 : 1 }}
-                  whileTap={{ scale: isFormValid() ? 0.98 : 1 }}
-                >
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AnalyticsIcon />}
-                    onClick={handleAnalyze}
-                    disabled={!isFormValid() || loading}
-                    sx={{ 
-                      minWidth: 150,
-                      height: 'fit-content',
-                      alignSelf: 'flex-start',
-                      background: theme => isFormValid()
-                        ? `linear-gradient(135deg, 
-                            ${theme.palette.primary.main} 0%, 
-                            ${theme.palette.secondary.main} 100%)`
-                        : theme.palette.action.disabledBackground,
-                      color: theme => isFormValid()
-                        ? '#ffffff'
-                        : theme.palette.text.disabled,
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid',
-                      borderColor: theme => isFormValid()
-                        ? 'rgba(255,255,255,0.2)'
-                        : 'divider',
+          <Box sx={{ overflow: 'hidden' }}>
+            <Collapse in={controlsOpen}>
+              <AppBar 
+                position="static" 
+                elevation={0}
+                sx={{ 
+                  borderBottom: 1, 
+                  borderColor: 'divider',
+                  backgroundColor: theme => alpha(theme.palette.background.paper, 0.7),
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease-in-out',
+                }}
+              >
+                <Toolbar sx={{ 
+                  flexDirection: { xs: 'column', sm: 'row' }, 
+                  gap: { xs: 1, sm: 2 },
+                  py: { xs: 1, sm: 0 },
+                  minHeight: 48,
+                }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    gap: { xs: 1, sm: 2 }
+                  }}>
+                    <Typography variant="h6" sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      color: 'text.primary',
+                      fontSize: { xs: '1rem', sm: scrolled ? '1rem' : '1.25rem' },
                       transition: 'all 0.3s ease-in-out',
-                      '&:hover': isFormValid() ? {
-                        background: theme => `linear-gradient(135deg, 
-                          ${theme.palette.primary.dark} 0%, 
-                          ${theme.palette.secondary.dark} 100%)`,
-                        transform: 'translateY(-2px)',
-                        boxShadow: theme => `0 8px 24px ${alpha(theme.palette.primary.main, 0.25)}`,
-                      } : {},
-                    }}
-                  >
-                    {loading ? 'Analyzing...' : 'Analyze'}
-                  </Button>
-                </motion.div>
-              </Box>
-            </Box>
-          </Toolbar>
-          
-          <Collapse in={controlsOpen || !scrolled}>
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                mb: 2,
-                flexWrap: 'wrap',
-                alignItems: 'flex-start'
-              }}>
-                <Paper 
-                  elevation={0} 
-                  sx={{ 
-                    p: 2, 
-                    border: 1, 
-                    borderColor: 'divider',
-                    minWidth: 280,
-                    backdropFilter: 'blur(10px)',
-                    backgroundColor: theme => alpha(theme.palette.background.paper, 0.7),
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <DateRangeIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="subtitle2">Analysis Period</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                      label="Start Date"
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                      size="small"
-                      fullWidth
-                    />
-                    <TextField
-                      label="End Date"
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                      size="small"
-                      fullWidth
-                    />
-                  </Box>
-                </Paper>
+                    }}>
+                      Analysis Controls
+                      {scrolled && (
+                        <motion.div
+                          animate={{ rotate: controlsOpen ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <KeyboardArrowDownIcon />
+                        </motion.div>
+                      )}
+                    </Typography>
 
-                <Paper 
-                  elevation={0} 
-                  sx={{ 
-                    p: 2, 
-                    border: 1, 
-                    borderColor: 'divider',
-                    flexGrow: 1,
-                    backdropFilter: 'blur(10px)',
-                    backgroundColor: theme => alpha(theme.palette.background.paper, 0.7),
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <AppsIcon color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="subtitle2">Select Services</Typography>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      gap: { xs: 1, sm: 2 },
+                      ml: { xs: 0, sm: 'auto' }
+                    }}>
+                      <Tooltip title="Reset Analysis">
+                        <IconButton 
+                          onClick={handleReset}
+                          disabled={loading}
+                          size={isMobile ? "small" : "medium"}
+                          sx={{
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              transform: 'rotate(180deg)',
+                            }
+                          }}
+                        >
+                          <RefreshIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <motion.div
+                        whileHover={{ scale: isFormValid() ? 1.02 : 1 }}
+                        whileTap={{ scale: isFormValid() ? 0.98 : 1 }}
+                      >
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          startIcon={<AnalyticsIcon />}
+                          onClick={handleAnalyze}
+                          disabled={!isFormValid() || loading}
+                          size={isMobile ? "small" : "medium"}
+                          sx={{ 
+                            minWidth: { xs: 'auto', sm: 150 },
+                            height: 'fit-content',
+                            alignSelf: 'center',
+                            background: theme => isFormValid()
+                              ? `linear-gradient(135deg, 
+                                  ${theme.palette.primary.main} 0%, 
+                                  ${theme.palette.secondary.main} 100%)`
+                              : theme.palette.action.disabledBackground,
+                            color: theme => isFormValid()
+                              ? '#ffffff'
+                              : theme.palette.text.disabled,
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid',
+                            borderColor: theme => isFormValid()
+                              ? 'rgba(255,255,255,0.2)'
+                              : 'divider',
+                            transition: 'all 0.3s ease-in-out',
+                            '&:hover': isFormValid() ? {
+                              background: theme => `linear-gradient(135deg, 
+                                ${theme.palette.primary.dark} 0%, 
+                                ${theme.palette.secondary.dark} 100%)`,
+                              transform: 'translateY(-2px)',
+                              boxShadow: theme => `0 8px 24px ${alpha(theme.palette.primary.main, 0.25)}`,
+                            } : {},
+                          }}
+                        >
+                          {loading ? 'Analyzing...' : 'Analyze'}
+                        </Button>
+                      </motion.div>
+                    </Box>
                   </Box>
+                </Toolbar>
+
+                <Collapse in={controlsOpen}>
                   <Box sx={{ p: 2 }}>
-                    {Object.entries(providers).map(([provider, services]) => (
-                      <Box key={provider}>
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'space-between',
-                          mb: 1 
-                        }}>
-                          <Typography 
-                            variant="caption" 
-                            sx={{ 
-                              color: 'text.secondary',
-                              fontWeight: 500
-                            }}
-                          >
-                            {provider}
-                          </Typography>
-                          <Button
-                            size="small"
-                            variant="text"
-                            onClick={() => handleSelectAll(provider)}
-                            sx={{
-                              minWidth: 'auto',
-                              fontSize: '0.75rem',
-                              color: 'text.secondary',
-                              '&:hover': {
-                                color: 'primary.main',
-                                backgroundColor: 'transparent',
-                              }
-                            }}
-                          >
-                            {services.every(service => 
-                              isServiceSelected(provider, service)) ? 'Deselect All' : 'Select All'}
-                          </Button>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      gap: 2, 
+                      mb: 2,
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-start'
+                    }}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          border: 1, 
+                          borderColor: 'divider',
+                          minWidth: 280,
+                          backdropFilter: 'blur(10px)',
+                          backgroundColor: theme => alpha(theme.palette.background.paper, 0.7),
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <DateRangeIcon color="primary" sx={{ mr: 1 }} />
+                          <Typography variant="subtitle2">Analysis Period</Typography>
                         </Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {services.map((service) => (
-                            <motion.div
-                              key={`${provider}:${service}`}
-                              whileHover={{ y: -2 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              <Chip
-                                label={service}
-                                onClick={() => handleServiceToggle(provider, service)}
-                                color={isServiceSelected(provider, service) ? "primary" : "default"}
-                                variant={isServiceSelected(provider, service) ? "filled" : "outlined"}
-                                size="small"
-                                sx={{
-                                  backdropFilter: 'blur(8px)',
-                                  backgroundColor: theme => isServiceSelected(provider, service) 
-                                    ? alpha(theme.palette.primary.main, 0.9)
-                                    : alpha(theme.palette.background.paper, 0.5),
-                                  border: '1px solid',
-                                  borderColor: 'divider',
-                                }}
-                              />
-                            </motion.div>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <TextField
+                            label="Start Date"
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            fullWidth
+                          />
+                          <TextField
+                            label="End Date"
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                            fullWidth
+                          />
+                        </Box>
+                      </Paper>
+
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          border: 1, 
+                          borderColor: 'divider',
+                          flexGrow: 1,
+                          backdropFilter: 'blur(10px)',
+                          backgroundColor: theme => alpha(theme.palette.background.paper, 0.7),
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <AppsIcon color="primary" sx={{ mr: 1 }} />
+                          <Typography variant="subtitle2">Select Services</Typography>
+                        </Box>
+                        <Box sx={{ p: 2 }}>
+                          {Object.entries(providers).map(([provider, services]) => (
+                            <Box key={provider}>
+                              <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between',
+                                mb: 1 
+                              }}>
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: 'text.secondary',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  {provider}
+                                </Typography>
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => handleSelectAll(provider)}
+                                  sx={{
+                                    minWidth: 'auto',
+                                    fontSize: '0.75rem',
+                                    color: 'text.secondary',
+                                    '&:hover': {
+                                      color: 'primary.main',
+                                      backgroundColor: 'transparent',
+                                    }
+                                  }}
+                                >
+                                  {services.every(service => 
+                                    isServiceSelected(provider, service)) ? 'Deselect All' : 'Select All'}
+                                </Button>
+                              </Box>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                {services.map((service) => (
+                                  <motion.div
+                                    key={`${provider}:${service}`}
+                                    whileHover={{ y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                  >
+                                    <Chip
+                                      label={service}
+                                      onClick={() => handleServiceToggle(provider, service)}
+                                      color={isServiceSelected(provider, service) ? "primary" : "default"}
+                                      variant={isServiceSelected(provider, service) ? "filled" : "outlined"}
+                                      size="small"
+                                      sx={{
+                                        backdropFilter: 'blur(8px)',
+                                        backgroundColor: theme => isServiceSelected(provider, service) 
+                                          ? alpha(theme.palette.primary.main, 0.9)
+                                          : alpha(theme.palette.background.paper, 0.5),
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                      }}
+                                    />
+                                  </motion.div>
+                                ))}
+                              </Box>
+                            </Box>
                           ))}
                         </Box>
-                      </Box>
-                    ))}
+                      </Paper>
+                    </Box>
                   </Box>
-                </Paper>
-              </Box>
-            </Box>
-          </Collapse>
-        </AppBar>
-      </Slide>
+                </Collapse>
+              </AppBar>
+            </Collapse>
+          </Box>
+        </Paper>
+      </Box>
 
       <Snackbar 
         open={!!error} 
@@ -450,7 +529,11 @@ function Dashboard() {
         </Alert>
       </Snackbar>
 
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ 
+        mt: 2,
+        position: 'relative',
+        zIndex: theme => theme.zIndex.drawer + 2
+      }}>
         <GraphDisplay 
           ref={graphDisplayRef} 
           loading={loading} 
