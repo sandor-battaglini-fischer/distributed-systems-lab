@@ -15,9 +15,9 @@ Data collection:
 
 Data analysis:
 - (B) Improve plots, make sure it is consistent with what their repo had
-- See what additional research/analyis we can do
+- (S) See what additional research/analyis we can do
 - Ideas:
-  - use LLM to analyse the results from the plots to give a user profile based suggestion (questionaire, what time they use llms -> which one is best)
+  - (S) use LLM to analyse the results from the plots to give a user profile based suggestion (questionaire, what time they use llms -> which one is best)
   - ...
 
 General:
