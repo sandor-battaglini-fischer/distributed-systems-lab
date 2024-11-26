@@ -22,4 +22,5 @@ Data analysis:
 
 General:
 - Document what we have done (design process)
+- Document time spent etc
 - Start writing the report and PPT (?)
