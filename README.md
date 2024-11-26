@@ -9,7 +9,7 @@ Interface:
 
 Data collection:
 - (N) Integrate Stability AI collection with the rest (same CSV)
-- (N) Configure a Cronjob to run in the background
+- (S) Configure a Cronjob to run in the background
 - Check if Google AI has usage data, if not maybe third party data collection option
 - If we have time: other services (?)
 
