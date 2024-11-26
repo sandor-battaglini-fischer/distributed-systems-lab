@@ -6,6 +6,16 @@ from scripts.analysis import (
     generate_monthly_overview,
     generate_status_combinations,
     cleanup_old_plots,
+    generate_mttr_distribution,
+    generate_mtbf_distribution,
+    generate_resolution_activities,
+    generate_temporal_distribution,
+    generate_daily_availability,
+    generate_cooccurrence_matrix,
+    generate_mttr_boxplot,
+    generate_mtbf_boxplot,
+    generate_mttr_provider,
+    generate_mtbf_provider
 )
 from werkzeug.exceptions import HTTPException
 import traceback
@@ -52,26 +62,72 @@ def analyze():
             # Clean up old plots first
             cleanup_old_plots()
 
-            # Generate failure recovery plot
-            failure_recovery_path = generate_failure_recovery(start_date, end_date, selected_services)
-            if failure_recovery_path:
-                plots['figure2'] = failure_recovery_path
+            # Days of Week Distribution (figure1)
+            days_distribution_path = generate_monthly_overview(start_date, end_date, selected_services)
+            if days_distribution_path:
+                plots['figure1'] = days_distribution_path
             
-            # Generate other plots as needed
-            monthly_overview_path = generate_monthly_overview(start_date, end_date, selected_services)
-            if monthly_overview_path:
-                plots['figure1'] = monthly_overview_path
+            # MTTR Analysis (figure2)
+            mttr_analysis_path = generate_mttr_distribution(start_date, end_date, selected_services)
+            if mttr_analysis_path:
+                plots['figure2'] = mttr_analysis_path
             
+            # MTTR by Provider (figure3)
+            mttr_provider_path = generate_mttr_provider(start_date, end_date, selected_services)
+            if mttr_provider_path:
+                plots['figure3'] = mttr_provider_path
+
+            # MTTR Distribution (figure4)
+            mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, selected_services)
+            if mttr_boxplot_path:
+                plots['figure4'] = mttr_boxplot_path
+
+            # MTBF Analysis (figure5)
+            mtbf_analysis_path = generate_mtbf_distribution(start_date, end_date, selected_services)
+            if mtbf_analysis_path:
+                plots['figure5'] = mtbf_analysis_path
+
+            # MTBF by Provider (figure6)
+            mtbf_provider_path = generate_mtbf_provider(start_date, end_date, selected_services)
+            if mtbf_provider_path:
+                plots['figure6'] = mtbf_provider_path
+
+            # MTBF Distribution (figure7)
+            mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, selected_services)
+            if mtbf_boxplot_path:
+                plots['figure7'] = mtbf_boxplot_path
+
+            # Resolution Activities (figure8)
+            resolution_activities_path = generate_resolution_activities(start_date, end_date, selected_services)
+            if resolution_activities_path:
+                plots['figure8'] = resolution_activities_path
+
+            # Status Combinations (figure9)
             status_combinations_path = generate_status_combinations(start_date, end_date, selected_services)
             if status_combinations_path:
-                plots['figure3'] = status_combinations_path
+                plots['figure9'] = status_combinations_path
+
+            # Service Availability (figure10)
+            daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
+            if daily_availability_path:
+                plots['figure10'] = daily_availability_path
+
+            # Temporal Patterns (figure11)
+            temporal_patterns_path = generate_temporal_distribution(start_date, end_date, selected_services)
+            if temporal_patterns_path:
+                plots['figure11'] = temporal_patterns_path
+
+            # Service Co-occurrence (figure12)
+            cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, selected_services)
+            if cooccurrence_matrix_path:
+                plots['figure12'] = cooccurrence_matrix_path
 
             # Verify that the files exist
             for plot_name, plot_path in plots.items():
                 full_path = os.path.join(os.path.dirname(__file__), plot_path.lstrip('/'))
                 if not os.path.exists(full_path):
                     logger.error(f"Plot file not found: {full_path}")
-                    plots.pop(plot_name)  # Remove the missing plot from the response
+                    plots.pop(plot_name)
 
             if not plots:
                 raise ValueError("No plots were generated successfully")

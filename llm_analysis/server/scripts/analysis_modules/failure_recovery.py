@@ -12,11 +12,9 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
     Analyze failure recovery patterns and generate stacked bar plot
     """
     try:
-        # Convert string dates to pandas datetime with UTC timezone
         start_date = pd.to_datetime(start_date).tz_localize('UTC')
         end_date = pd.to_datetime(end_date).tz_localize('UTC')
         
-        # Convert service IDs to match exact CSV column names
         service_mapping = {
             # OpenAI Services
             'OpenAI:Playground': 'Playground',
@@ -24,7 +22,7 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
             'OpenAI:Labs': 'Labs',
             'OpenAI:ChatGPT': 'ChatGPT',
             
-            # Anthropic Services (match exact column names from CSV)
+            # Anthropic Services
             'Anthropic:API': 'api.anthropic.com',
             'Anthropic:Claude': 'claude.ai',
             'Anthropic:Console': 'console.anthropic.com',
@@ -33,17 +31,14 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
             'Character.AI:Character.AI': 'Character.AI',
         }
 
-        # Get available columns from CSV first
         data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
                                 'static', 'data', 'incident_stages.csv')
         
         if not os.path.exists(data_path):
             raise FileNotFoundError(f"Data file not found at {data_path}")
 
-        # Read the CSV and get available columns
         df = pd.read_csv(data_path)
         
-        # Convert timestamps and handle timezone
         status_columns = ['investigating', 'identified', 'monitoring', 'resolved', 'postmortem']
         for status in status_columns:
             df[f'{status}_timestamp'] = pd.to_datetime(df[f'{status}_timestamp'])
@@ -55,10 +50,9 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
         # Filter by date range
         df = df[
             (df['investigating_timestamp'] >= start_date) & 
-            (df['investigating_timestamp'] <= end_date)  # Changed from postmortem to investigating
+            (df['investigating_timestamp'] <= end_date)  
         ]
 
-        # Map selected services to CSV column names
         services_to_analyze = []
         for service in selected_services:
             if service in service_mapping:
@@ -73,11 +67,9 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
         if not services_to_analyze:
             raise ValueError("No valid services selected for analysis")
 
-        # Print debug information
         print("Selected services:", selected_services)
         print("Mapped services:", services_to_analyze)
 
-        # Calculate status combinations
         def get_status_combination(row):
             flags = []
             if row['investigating_flag']: flags.append('S1')
@@ -93,7 +85,7 @@ def analyze_failure_recovery(start_date, end_date, selected_services):
         plt.style.use('default')
         sns.set_theme(style="whitegrid")
 
-        # Create visualization
+
         fig, ax = plt.subplots(figsize=(16, 10))
         
         # Prepare data for stacked bar chart

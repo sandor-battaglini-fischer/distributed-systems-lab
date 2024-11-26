@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import About from './pages/About';
 import './App.css';
+import { AnalysisProvider } from './context/AnalysisContext';
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -23,14 +24,16 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Layout toggleTheme={toggleTheme}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
-        </Layout>
-      </Router>
+      <AnalysisProvider>
+        <Router>
+          <Layout toggleTheme={toggleTheme}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/about" element={<About />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </AnalysisProvider>
     </ThemeProvider>
   );
 }

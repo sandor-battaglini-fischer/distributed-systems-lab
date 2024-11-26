@@ -13,24 +13,40 @@ import {
   Collapse,
   useTheme,
   useMediaQuery,
-  alpha
+  alpha,
+  ButtonGroup,
+  Alert,
+  Snackbar,
+  Tooltip
 } from '@mui/material';
 import {
   AnalyticsOutlined as AnalyticsIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   DateRange as DateRangeIcon,
-  Apps as AppsIcon
+  Apps as AppsIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import GraphDisplay from './GraphDisplay';
+import { useAnalysis } from '../context/AnalysisContext';
 
 function Dashboard() {
-  const [selectedServices, setSelectedServices] = useState([]);
-  const [startDate, setStartDate] = useState('2023-08-01');
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const {
+    selectedServices,
+    setSelectedServices,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    loading,
+    error,
+    setError,
+    handleAnalyze,
+    resetAnalysis
+  } = useAnalysis();
+  
   const [controlsOpen, setControlsOpen] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const graphDisplayRef = useRef(null);
@@ -116,56 +132,6 @@ function Dashboard() {
     return selectedServices.includes(serviceId);
   };
 
-  const handleAnalyze = async () => {
-    try {
-      setLoading(true);
-      const payload = {
-        startDate,
-        endDate,
-        selectedServices,
-      };
-      console.log('Sending request with payload:', payload);
-
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      let result;
-      try {
-        result = await response.json();
-      } catch (parseError) {
-        console.error('Failed to parse response:', parseError);
-        throw new Error('Server response was not valid JSON');
-      }
-
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP error! status: ${response.status}`);
-      }
-      
-      if (result.success) {
-        setControlsOpen(false);
-        if (result.plots) {
-          console.log('Plots received:', result.plots);
-          if (graphDisplayRef.current?.refreshPlots) {
-            graphDisplayRef.current.refreshPlots(result.plots);
-          }
-        }
-      } else {
-        throw new Error(result.error || 'Analysis failed');
-      }
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      alert(`Analysis failed: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const isDateRangeValid = () => {
     return startDate && endDate && new Date(startDate) <= new Date(endDate);
   };
@@ -178,6 +144,45 @@ function Dashboard() {
     if (scrolled) {
       setControlsOpen(!controlsOpen);
     }
+  };
+
+  const handleSelectAll = (provider) => {
+    const providerServices = providers[provider];
+    const serviceIds = providerServices.map(service => {
+      switch(true) {
+        case provider === 'Anthropic' && service === 'API':
+          return 'Anthropic:API';
+        case provider === 'Anthropic' && service === 'Claude':
+          return 'Anthropic:Claude';
+        case provider === 'Anthropic' && service === 'Console':
+          return 'Anthropic:Console';
+        case provider === 'Character.AI' && service === 'Character.AI':
+          return 'Character.AI:Character.AI';
+        case provider === 'Stability AI' && service === 'Stable Diffusion':
+          return 'Stability AI:Stable Diffusion';
+        case provider === 'Google':
+          return `Google:${service}`;
+        default:
+          return `OpenAI:${service}`;
+      }
+    });
+
+    setSelectedServices(prev => {
+      const currentProviderServices = serviceIds.filter(id => prev.includes(id));
+      if (currentProviderServices.length === serviceIds.length) {
+        // If all services of this provider are selected, deselect them
+        return prev.filter(id => !serviceIds.includes(id));
+      } else {
+        // Otherwise, select all services of this provider
+        const otherServices = prev.filter(id => !serviceIds.includes(id));
+        return [...otherServices, ...serviceIds];
+      }
+    });
+  };
+
+  const handleReset = () => {
+    resetAnalysis();
+    setControlsOpen(true);
   };
 
   return (
@@ -209,25 +214,13 @@ function Dashboard() {
             transition: 'all 0.3s ease-in-out',
           }}
         >
-          <Toolbar 
-            onClick={handleToolbarClick}
-            sx={{ 
-              cursor: scrolled ? 'pointer' : 'default',
-              '&:hover': scrolled ? {
-                bgcolor: theme => alpha(theme.palette.action.hover, 0.1),
-              } : {},
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 2,
-              minHeight: scrolled ? 48 : 64,
-              transition: 'all 0.3s ease-in-out',
-            }}
-          >
+          <Toolbar>
             <Box sx={{ 
               display: 'flex', 
-              alignItems: 'center', 
-              gap: 1,
-              flex: 1
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              gap: 2
             }}>
               <Typography variant="h6" sx={{ 
                 display: 'flex', 
@@ -249,18 +242,22 @@ function Dashboard() {
                   </motion.div>
                 )}
               </Typography>
-            </Box>
-          </Toolbar>
-          
-          <Collapse in={controlsOpen || !scrolled}>
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                mb: 2,
-                flexWrap: 'wrap',
-                alignItems: 'flex-start'
-              }}>
+
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Tooltip title="Reset Analysis">
+                  <IconButton 
+                    onClick={handleReset}
+                    disabled={loading}
+                    sx={{
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'rotate(180deg)',
+                      }
+                    }}
+                  >
+                    <RefreshIcon />
+                  </IconButton>
+                </Tooltip>
                 <motion.div
                   whileHover={{ scale: isFormValid() ? 1.02 : 1 }}
                   whileTap={{ scale: isFormValid() ? 0.98 : 1 }}
@@ -270,7 +267,7 @@ function Dashboard() {
                     color="primary"
                     startIcon={<AnalyticsIcon />}
                     onClick={handleAnalyze}
-                    disabled={!isFormValid()}
+                    disabled={!isFormValid() || loading}
                     sx={{ 
                       minWidth: 150,
                       height: 'fit-content',
@@ -296,21 +293,24 @@ function Dashboard() {
                         transform: 'translateY(-2px)',
                         boxShadow: theme => `0 8px 24px ${alpha(theme.palette.primary.main, 0.25)}`,
                       } : {},
-                      '&:disabled': {
-                        background: theme => theme.palette.action.disabledBackground,
-                        color: theme => theme.palette.text.disabled,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      },
-                      '&:active': isFormValid() ? {
-                        transform: 'translateY(1px)',
-                      } : {},
                     }}
                   >
-                    Analyze
+                    {loading ? 'Analyzing...' : 'Analyze'}
                   </Button>
                 </motion.div>
-
+              </Box>
+            </Box>
+          </Toolbar>
+          
+          <Collapse in={controlsOpen || !scrolled}>
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                mb: 2,
+                flexWrap: 'wrap',
+                alignItems: 'flex-start'
+              }}>
                 <Paper 
                   elevation={0} 
                   sx={{ 
@@ -363,20 +363,42 @@ function Dashboard() {
                     <AppsIcon color="primary" sx={{ mr: 1 }} />
                     <Typography variant="subtitle2">Select Services</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ p: 2 }}>
                     {Object.entries(providers).map(([provider, services]) => (
                       <Box key={provider}>
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            color: 'text.secondary',
-                            display: 'block',
-                            mb: 1,
-                            fontWeight: 500
-                          }}
-                        >
-                          {provider}
-                        </Typography>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          mb: 1 
+                        }}>
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: 'text.secondary',
+                              fontWeight: 500
+                            }}
+                          >
+                            {provider}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="text"
+                            onClick={() => handleSelectAll(provider)}
+                            sx={{
+                              minWidth: 'auto',
+                              fontSize: '0.75rem',
+                              color: 'text.secondary',
+                              '&:hover': {
+                                color: 'primary.main',
+                                backgroundColor: 'transparent',
+                              }
+                            }}
+                          >
+                            {services.every(service => 
+                              isServiceSelected(provider, service)) ? 'Deselect All' : 'Select All'}
+                          </Button>
+                        </Box>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                           {services.map((service) => (
                             <motion.div
@@ -411,6 +433,22 @@ function Dashboard() {
           </Collapse>
         </AppBar>
       </Slide>
+
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setError(null)} 
+          severity="error" 
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
 
       <Box sx={{ mt: 2 }}>
         <GraphDisplay 

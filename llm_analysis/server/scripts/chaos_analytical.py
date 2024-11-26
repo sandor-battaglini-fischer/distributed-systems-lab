@@ -293,7 +293,7 @@ def generate_stacked_bar_plot(case_df):
 
 # Single Function Wrapping All Functionality
 def incident_status_count(start_date, end_date, service_lst):
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
 
     # Load and preprocess data
     df = load_and_preprocess_data(path, start_date, end_date)
@@ -318,7 +318,7 @@ def incident_status_count(start_date, end_date, service_lst):
 
 def mean_model_params(start_date, end_date, service_list):
     # Step 1: Load and preprocess the data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
 
     # Step 2: Calculate durations for each stage and add new columns
@@ -466,7 +466,7 @@ def check_incidents_for_services(csv_path):
 
 def plot_mttr_percentages(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
     
     # Filter corner cases
@@ -579,7 +579,7 @@ def plot_mttr_percentages(start_date, end_date, service_list):
 
 def plot_mttr_ecdf(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
     
     # Filter corner cases
@@ -642,7 +642,7 @@ def plot_mttr_ecdf(start_date, end_date, service_list):
 
 def plot_mtbf_ecdf_provider(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
     
     # Filter corner cases
@@ -736,7 +736,7 @@ def plot_mtbf_ecdf_provider(start_date, end_date, service_list):
 
 def calculate_and_plot_mttr_percentages(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
     
     # Filter corner cases
@@ -835,7 +835,7 @@ def calculate_and_plot_mttr_percentages(start_date, end_date, service_list):
 
 def box_plot_mttr_by_service(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
     
     # Filter corner cases
@@ -929,7 +929,7 @@ def box_plot_mttr_by_service(start_date, end_date, service_list):
 
 def plot_mtbf_ecdf_by_service(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
     
     # Filter corner cases
@@ -1049,7 +1049,7 @@ def plot_mtbf_ecdf_by_service(start_date, end_date, service_list):
 
 def plot_mtbf_boxplot_by_service(start_date, end_date, service_list):
     # Load and preprocess data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = load_and_preprocess_data(path, start_date, end_date)
 
     # Filter corner cases
@@ -1108,7 +1108,7 @@ def plot_mtbf_boxplot_by_service(start_date, end_date, service_list):
 
 def plot_incident_counts_by_day_of_week(start_date, end_date, service_list):
     # Load the data
-    path = 'data/clean/incident/2024-08-31/incident_stages.csv'
+    path = 'server/static/data/incident_stages.csv'
     df = pd.read_csv(path)
 
     # Convert timestamp columns to datetime and adjust timezones
