@@ -23,4 +23,7 @@ Data analysis:
 General:
 - Document what we have done (design process)
 - Document time spent etc
+- Integrate material from course:
+  - How do LLM services balance workload/scheduling
+  - What about consistency handling?
 - Start writing the report and PPT (?)
