@@ -17,6 +17,14 @@ from .analysis_modules.mttr_boxplot import analyze_mttr_boxplot
 from .analysis_modules.mtbf_boxplot import analyze_mtbf_boxplot
 from .analysis_modules.mttr_provider import analyze_mttr_provider
 from .analysis_modules.mtbf_provider import analyze_mtbf_provider
+import base64
+from openai import OpenAI
+from dotenv import load_dotenv
+import io
+
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 PLOTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'plots')
 
@@ -314,5 +322,178 @@ def generate_mtbf_provider(start_date, end_date, services):
     except Exception as e:
         print(f"Error generating MTBF provider analysis: {e}")
         return None
+
+def encode_image_to_base64(fig):
+    """Convert matplotlib figure to base64 string"""
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
+    return image_base64
+
+def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services=None):
+    """Get analysis prompt specific to each plot type with date and service context"""
+    
+    # Format dates for better readability
+    date_context = ""
+    if start_date and end_date:
+        start = pd.to_datetime(start_date).strftime('%B %d, %Y')
+        end = pd.to_datetime(end_date).strftime('%B %d, %Y')
+        date_context = f" for the period {start} to {end}"
+    
+    # Format services for better readability
+    service_context = ""
+    if services:
+        service_names = [s.split(':')[1] if ':' in s else s for s in services]
+        if len(service_names) == 1:
+            service_context = f" for {service_names[0]}"
+        else:
+            service_list = ", ".join(service_names[:-1]) + f" and {service_names[-1]}"
+            service_context = f" for {service_list}"
+
+    prompts = {
+        'figure1': f"Analyze this day-of-week distribution plot{date_context}{service_context}. Focus on peak incident days and any provider-specific patterns.",
+        'figure2': f"Analyze this MTTR (Mean Time To Recovery) plot{date_context}{service_context}. Identify services with concerning recovery times and any outliers.",
+        'figure3': f"Analyze this provider-based MTTR plot{date_context}{service_context}. Compare provider performance and highlight significant differences.",
+        'figure4': f"Review this MTTR distribution boxplot{date_context}{service_context}. Note any concerning spreads or outliers in recovery times.",
+        'figure5': f"Analyze this MTBF (Mean Time Between Failures) plot{date_context}{service_context}. Identify services with concerning failure frequencies.",
+        'figure6': f"Analyze this provider-based MTBF plot{date_context}{service_context}. Compare provider reliability and highlight significant patterns.",
+        'figure7': f"Review this MTBF distribution boxplot{date_context}{service_context}. Note any concerning patterns in failure intervals.",
+        'figure8': f"Analyze these resolution activities{date_context}{service_context}. Identify bottlenecks or inefficiencies in the resolution process.",
+        'figure9': f"Analyze these status combinations{date_context}{service_context}. Highlight unusual transition patterns or process inefficiencies.",
+        'figure10': f"Review this service availability plot{date_context}{service_context}. Identify SLA breaches and availability trends.",
+        'figure11': f"Analyze these temporal patterns{date_context}{service_context}. Identify peak incident times and monthly trends.",
+        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Identify significant service dependencies or correlations."
+    }
+    
+    base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns."
+    return prompts.get(plot_type, base_prompt)
+
+def analyze_plot(image_base64, plot_type=None):
+    """Analyze plot using GPT-4o-mini with plot-specific prompts"""
+    try:
+        prompt = get_plot_specific_prompt(plot_type) if plot_type else "Analyze this plot and identify significant patterns."
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"{prompt} Provide a concise analysis in about 30-40 words, focusing only on the most significant findings. Format the response as a clear statement without any prefixes or numbering."
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_base64}",
+                                "detail": "high"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=100
+        )
+        
+        analysis = response.choices[0].message.content.strip()
+        
+
+        analysis = analysis.lstrip('0123456789.- *')
+        analysis = analysis.strip()
+        
+        return {
+            "success": True,
+            "analysis": analysis
+        }
+        
+    except Exception as e:
+        print(f"Error in analyze_plot: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Analysis failed: {str(e)}"
+        }
+
+def summarize_analyses(analyses, start_date=None, end_date=None, services=None):
+    """Summarize multiple plot analyses into a cohesive summary with context"""
+    try:
+        # Format date range for context
+        date_context = ""
+        if start_date and end_date:
+            start = pd.to_datetime(start_date).strftime('%B %d, %Y')
+            end = pd.to_datetime(end_date).strftime('%B %d, %Y')
+            date_context = f"Time Period: {start} to {end}\n"
+        
+        # Format services for context
+        service_context = ""
+        if services:
+            service_names = [s.split(':')[1] if ':' in s else s for s in services]
+            service_context = f"Services Analyzed: {', '.join(service_names)}\n"
+
+        # Ensure analyses is a list and contains valid data
+        if not isinstance(analyses, list):
+            raise ValueError("Analyses must be a list")
+
+        # Format the analyses text properly, with error checking
+        analyses_text = []
+        for analysis in analyses:
+            if not isinstance(analysis, dict):
+                continue
+            title = analysis.get('title', '')
+            content = analysis.get('analysis', '')
+            if title and content:
+                analyses_text.append(f"{title}: {content}")
+
+        if not analyses_text:
+            raise ValueError("No valid analyses found")
+
+        analyses_str = "\n".join(analyses_text)
+
+        summary_prompt = f"""
+        You are analyzing a set of LLM service metrics with the following context:
+        {date_context}{service_context}
+        Based on the following individual plot analyses, provide a structured executive summary 
+        (200-250 words) that highlights the most critical insights requiring attention.
+        
+        Format the response as follows:
+        - Start with a brief overview paragraph
+        - Use bold markdown (**text**) for key metrics and findings
+        - Group related insights together into clear sections
+        - Focus on patterns and their implications
+        
+        Focus on:
+        1. Major reliability issues
+        2. Performance bottlenecks
+        3. Concerning patterns
+
+        Individual analyses:
+        {analyses_str}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": summary_prompt
+                }
+            ],
+            max_tokens=400
+        )
+        
+        return {
+            "success": True,
+            "analysis": response.choices[0].message.content.strip()
+        }
+        
+    except Exception as e:
+        print(f"Error in summarize_analyses: {str(e)}")  # Add detailed logging
+        print(f"Analyses data received: {analyses}")  # Debug print
+        return {
+            "success": False,
+            "error": f"Summary failed: {str(e)}"
+        }
 
 os.makedirs(PLOTS_DIR, exist_ok=True) 

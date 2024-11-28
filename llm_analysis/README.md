@@ -8,6 +8,7 @@ This project is a web application built using React for the frontend and Flask f
 
 - Node.js and npm
 - Python 3.x
+- OpenAI API key (for AI plot analysis feature)
 
 ### Installation
 
@@ -41,6 +42,12 @@ This project is a web application built using React for the frontend and Flask f
      source venv/bin/activate
      ```
 
+   - On Windows:
+
+     ```bash
+     .\venv\Scripts\activate
+     ```
+
 4. **Install backend dependencies:**
 
    With the virtual environment activated, install the dependencies using `pip`:
@@ -48,6 +55,16 @@ This project is a web application built using React for the frontend and Flask f
    ```bash
    pip install -r requirements.txt
    ```
+
+5. **Configure Environment Variables:**
+
+   Create a `.env` file in the `server/scripts` directory with your API keys:
+
+   ```env
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
+   Replace `your_openai_api_key_here` with your actual OpenAI API key.
 
 ### Running the Application
 
@@ -77,6 +94,7 @@ This project is a web application built using React for the frontend and Flask f
    ```
 
    The server will be available at `http://localhost:5000`.
+
 2. **Start the frontend development server:**
 
    In the `client` directory, run:
@@ -87,8 +105,35 @@ This project is a web application built using React for the frontend and Flask f
 
    This will start the React development server on `http://localhost:3000`.
 
+## Using the AI Plot Analysis Feature
+
+The application includes an AI-powered plot analysis feature that can analyze visualizations and provide insights. To use this feature:
+
+1. **Setup Requirements:**
+   - Ensure you have a valid OpenAI API key
+   - Add the API key to your `.env` file as described above
+   - Make sure you're running the application in production mode using the start.sh script
+
+2. **Using the Feature:**
+   - Generate plots by selecting services and date range
+   - Once plots are displayed, find the "AI Plot Analysis" section below the plots
+   - Choose either:
+     - A single plot to analyze specific visualizations
+     - "Analyze All Plots" for a comprehensive summary
+   - Click "Analyze Plot" to generate AI insights
+
+3. **Analysis Types:**
+   - **Single Plot Analysis**: Provides detailed insights about specific visualizations
+   - **All Plots Analysis**: Generates a comprehensive summary of all plots, highlighting key patterns and insights
+
+4. **Troubleshooting:**
+   - If you see "Please use production server" message, ensure you're running the server using start.sh
+   - Verify your API key is correctly set in the .env file
+   - Check the server logs for any API-related errors
+
 ### Learn More
 
 - [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
 - [React documentation](https://reactjs.org/)
 - [Flask documentation](https://flask.palletsprojects.com/)
+- [OpenAI API documentation](https://platform.openai.com/docs/api-reference)

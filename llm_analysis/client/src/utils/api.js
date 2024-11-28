@@ -3,7 +3,14 @@ export const handleApiError = (error) => {
         // Network error or server not running
         return {
             success: false,
-            error: "Cannot connect to server. Please ensure the backend is running.",
+            error: "Please use production server. The development server is not running.",
+        };
+    }
+    // Method not allowed error (405)
+    if (error.status === 405) {
+        return {
+            success: false,
+            error: "Please use production server. This feature is only available in production.",
         };
     }
     // Handle other types of errors...
@@ -32,4 +39,81 @@ export const analyzeData = async (data) => {
     } catch (error) {
         return handleApiError(error);
     }
+};
+
+export const analyzePlot = async (plotUrl, plotType, startDate, endDate, services) => {
+  try {
+    // Fetch the image data from the plot URL
+    const imageResponse = await fetch(plotUrl);
+    const blob = await imageResponse.blob();
+    
+    // Convert blob to base64
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(blob);
+    });
+
+    // Send the base64 image to the analysis endpoint
+    const response = await fetch('/api/analyze-plot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        image: base64,
+        plotType,
+        startDate,
+        endDate,
+        services
+      }),
+    });
+    
+    if (response.status === 405) {
+      throw new Error("Please use production server. This feature is only available in production.");
+    }
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to analyze plot');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error analyzing plot:', error);
+    throw error;
+  }
+};
+
+export const summarizeAnalyses = async (analyses, startDate, endDate, services) => {
+  try {
+    const response = await fetch('/api/summarize-analyses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        analyses,
+        startDate,
+        endDate,
+        services
+      }),
+    });
+
+    if (response.status === 405) {
+      throw new Error("Please use production server. This feature is only available in production.");
+    }
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to summarize analyses');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error summarizing analyses:', error);
+    throw error;
+  }
 }; 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, forwardRef } from 'react';
-import { Box, Paper, CircularProgress, Typography, Chip, useTheme, useMediaQuery, Button, IconButton, Tooltip, LinearProgress, Skeleton, Fade } from '@mui/material';
+import { Box, Paper, CircularProgress, Typography, Chip, useTheme, useMediaQuery, Button, IconButton, Tooltip, LinearProgress, Skeleton, Fade, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useAnalysis } from '../context/AnalysisContext';
 import { 
   SaveAlt as SaveIcon,
   Download as DownloadIcon 
 } from '@mui/icons-material';
 import JSZip from 'jszip';
+import { analyzePlot } from '../utils/api';
+import PlotAnalysis from './PlotAnalysis';
 
 const plotConfigs = {
   figure1: {
@@ -170,6 +172,10 @@ const GraphDisplay = forwardRef((props, ref) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [savingAll, setSavingAll] = useState(false);
   const [error, setError] = useState(null);
+  const [analysis, setAnalysis] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
+  const [selectedPlotForAnalysis, setSelectedPlotForAnalysis] = useState(null);
 
   useEffect(() => {
     setImageErrors({});
@@ -314,6 +320,31 @@ const GraphDisplay = forwardRef((props, ref) => {
       setError('Failed to create ZIP file');
     } finally {
       setSavingAll(false);
+    }
+  };
+
+  const handleAnalyze = async () => {
+    setAnalyzing(true);
+    setAnalysisError(null);
+    
+    if (!selectedPlotForAnalysis || !plots[selectedPlotForAnalysis]) {
+      setAnalysisError('Please select a plot for analysis');
+      setAnalyzing(false);
+      return;
+    }
+    
+    try {
+      const plotUrl = plots[selectedPlotForAnalysis];
+      const result = await analyzePlot(plotUrl);
+      if (result.success) {
+        setAnalysis(result.analysis);
+      } else {
+        setAnalysisError(result.error || 'Failed to analyze plot');
+      }
+    } catch (error) {
+      setAnalysisError(error.message || 'Failed to analyze plot. Please try again.');
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -587,6 +618,14 @@ const GraphDisplay = forwardRef((props, ref) => {
             );
           })}
         </Box>
+
+        {/* Add PlotAnalysis component */}
+        {Object.keys(plots).length > 0 && (
+          <PlotAnalysis 
+            plots={plots}
+            plotConfigs={plotConfigs}
+          />
+        )}
       </Box>
     </Fade>
   );
