@@ -21,7 +21,9 @@ Data analysis:
 - (B) Improve plots, make sure it is consistent with what their repo had
 - (S) See what additional research/analyis we can do
 - Ideas:
-  - (S) use LLM to analyse the results from the plots (<span style="color:green;">done</span>) and give a user profile based suggestion (questionaire, what time they use llms -> which one is best)
+  - (S) use LLM to analyse the results from the plots (<span style="color:green;">done</span>) and:
+    - give a user profile based suggestion (questionaire, what time they use llms -> which one is best)
+    - use RAG to train on course material (local inference)
   - ...
 
 General:
