@@ -12,3 +12,13 @@ anthropic==0.8.1  # For Claude 3 Vision
 python-dotenv==1.0.0  # For environment variables
 pillow==10.2.0  # For image processing
 tenacity==8.2.3  # For retry logic
+
+python-dateutil==2.8.2
+pytz==2024.1
+requests==2.31.0
+urllib3==2.2.1
+certifi==2024.2.2
+charset-normalizer==3.3.2
+idna==3.6
+
+base64io==1.0.3
