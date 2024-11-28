@@ -21,7 +21,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "NODE_OPTIONS='--no-deprecation' react-scripts start",
     "build": "react-scripts build",
     "postbuild": "mkdir -p ../server/static && cp -r build/* ../server/static/",
     "test": "react-scripts test",

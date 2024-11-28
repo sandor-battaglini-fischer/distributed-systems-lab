@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard';
 import About from './pages/About';
 import './App.css';
 import { AnalysisProvider } from './context/AnalysisContext';
+import ConnectionStatus from './components/ConnectionStatus';
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -34,6 +35,7 @@ function App() {
           </Layout>
         </Router>
       </AnalysisProvider>
+      <ConnectionStatus />
     </ThemeProvider>
   );
 }

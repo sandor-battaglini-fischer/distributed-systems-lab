@@ -53,6 +53,10 @@ This project is a web application built using React for the frontend and Flask f
 
 1. **Start the backend server:**
 
+   #### Development Mode
+
+   For development with auto-reload:
+
    In the `server` directory, ensure the virtual environment is activated, then run:
 
    ```bash
@@ -61,6 +65,18 @@ This project is a web application built using React for the frontend and Flask f
 
    This will start the Flask server on `http://localhost:5000`.
 
+   #### Production Mode
+
+   For production deployment using Gunicorn:
+
+   ```bash
+   cd server
+   chmod +x start.sh stop.sh # Make scripts executable (first time only)
+   ./start.sh # Start the server
+   ./stop.sh # Stop the server when needed
+   ```
+
+   The server will be available at `http://localhost:5000`.
 2. **Start the frontend development server:**
 
    In the `client` directory, run:

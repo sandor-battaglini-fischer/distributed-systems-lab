@@ -40,6 +40,14 @@ app.config['HOST'] = '0.0.0.0'
 PLOTS_DIR = os.path.join(os.path.dirname(__file__), 'static', 'plots')
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
+# Add near the top of the file, after imports
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# For example, if you have something like:
+# scripts_dir = "scripts"
+# Update to:
+scripts_dir = os.path.join(BASE_DIR, "scripts")
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
