@@ -208,3 +208,4 @@ coverage/
 htmlcov/
 *.png
 llm_analysis/client/public/team/balint_old.jpg
+*.pid
