@@ -28,6 +28,8 @@ Data analysis:
   - API to GUI version (ChatGPT/Claude) analysis (hypothesis: API more stable)
   - (S) Geographical distribution of outages from downdetector
   - (S) Predictive failure model (statistical model)
+  - (S) Distribution of Incident Impact Level (and then generalise to a new metric)
+  - Why do the failures occur more often for some services? Company infrastructure/goals, tech stack, funding etc
 
 General:
 
