@@ -27,6 +27,7 @@ Data analysis:
     - Prompt engineer based on previous knowledge
   - API to GUI version (ChatGPT/Claude) analysis (hypothesis: API more stable)
   - (S) Geographical distribution of outages from downdetector
+  - (S) Predictive failure model (statistical model)
 
 General:
 
