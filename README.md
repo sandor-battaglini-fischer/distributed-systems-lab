@@ -32,6 +32,7 @@ Data analysis:
     - How fast will failures be resolved
   - (S) Distribution of Incident Impact Level (and then generalise to a new metric, new taxonomy?)
   - Why do the failures occur more often for some services? Company infrastructure/goals, tech stack, funding, computational resources, etc
+  - Assessment of the quality of status reporting (per service provider)
 
 General:
 
