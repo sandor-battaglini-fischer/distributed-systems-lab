@@ -1,6 +1,6 @@
 # LLM Analysis Dashboard
 
-This project is a web application built using React for the frontend and Flask for the backend. The frontend is styled with Material-UI and supports both light and dark themes. The backend is a simple Flask server with CORS enabled.
+This project is a web application built using React for the frontend and Flask for the backend. The frontend is styled with Material-UI and supports both light and dark themes. The backend is a simple Flask server running on Gunicorn.
 
 ## Getting Started
 
