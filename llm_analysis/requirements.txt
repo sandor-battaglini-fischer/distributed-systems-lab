@@ -22,3 +22,5 @@ charset-normalizer==3.3.2
 idna==3.6
 
 base64io==1.0.3
+
+selenium==4.27.1
