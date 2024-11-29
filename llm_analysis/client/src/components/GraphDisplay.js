@@ -99,17 +99,19 @@ const formatDate = (dateStr) => {
 
 const formatServiceName = (serviceName) => {
   // Convert service names to display format
-  const [provider, service] = serviceName.split('_');
-  switch(provider) {
-    case 'OpenAI':
+  const [provider, service] = serviceName.split(':');
+  switch(true) {
+    case provider === 'OpenAI' && service === 'DALL-E':
+      return 'OpenAI DALL·E';  // Special case for DALL-E
+    case provider === 'OpenAI':
       return `OpenAI ${service}`;
-    case 'Anthropic':
+    case provider === 'Anthropic':
       return `Anthropic ${service}`;
-    case 'Google':
+    case provider === 'Google':
       return `Google ${service}`;
-    case 'CharacterAI':
+    case provider === 'Character.AI':
       return 'Character.AI';
-    case 'StabilityAI':
+    case provider === 'Stability AI':
       return 'Stability AI';
     default:
       return serviceName;
@@ -230,10 +232,22 @@ const GraphDisplay = forwardRef((props, ref) => {
           return;
         }
 
+        // Fix service name formatting
+        const services = servicePart.split('-')
+          .filter(service => service !== 'E') // Remove standalone 'E'
+          .map(service => {
+            // Handle the special case for DALL-E
+            if (service.includes('DALL')) {
+              return 'OpenAI DALL·E';
+            }
+            // Handle other services
+            return formatServiceName(service.replace('_', ':'));
+          });
+
         details[figureId] = {
           startDate: formatDate(startDate),
           endDate: formatDate(endDate),
-          services: servicePart.split('-').map(formatServiceName)
+          services: services
         };
 
         console.log('Extracted details for', figureId, ':', details[figureId]);

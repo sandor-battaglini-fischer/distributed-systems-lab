@@ -9,6 +9,18 @@ import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
+# Update the service_mapping dictionary
+service_mapping = {
+    'OpenAI:API': 'API',
+    'OpenAI:ChatGPT': 'ChatGPT',
+    'OpenAI:DALL-E': 'Labs',
+    'OpenAI:Playground': 'Playground',
+    'Anthropic:API': 'api.anthropic.com',
+    'Anthropic:Claude': 'claude.ai',
+    'Anthropic:Console': 'console.anthropic.com',
+    'Character.AI:Character.AI': 'Character.AI'
+}
+
 def analyze_mtbf_provider(start_date, end_date, selected_services):
     """
     Analyze and visualize MTBF distribution across providers

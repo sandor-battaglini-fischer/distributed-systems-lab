@@ -71,7 +71,7 @@ function Dashboard() {
   }, [controlsOpen]);
 
   const providers = {
-    'OpenAI': ['API', 'ChatGPT', 'DALL·E', 'Playground', 'Labs'],
+    'OpenAI': ['API', 'ChatGPT', 'DALL-E', 'Playground'],
     'Anthropic': ['API', 'Claude', 'Console'],
     'Character.AI': ['Character.AI'],
     'Stability AI': ['Stable Diffusion'],

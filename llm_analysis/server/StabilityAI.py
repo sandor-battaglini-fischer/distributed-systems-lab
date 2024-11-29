@@ -23,10 +23,11 @@ def calculate_start_date(end_date):
 
 # Helper function to construct archive paths
 def get_archive_path(partition):
-    BASE_DIR = "/Users/nisha/check/PNS - Assignments"  # Adjust this to your project's base folder
-    start_date, end_date = calculate_start_date(partition)
-    archive_folder = os.path.join(BASE_DIR, "data/raw/incident/stabilityAI")
+    # Use relative path from the current file's location
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    archive_folder = os.path.join(current_dir, "static/data")
 
+    start_date, end_date = calculate_start_date(partition)
     os.makedirs(archive_folder, exist_ok=True)
     file_path = os.path.join(archive_folder, f"incident_history_{start_date}_{end_date}.csv")
     return file_path
@@ -198,7 +199,15 @@ class MyIncidentPage:
 
 if __name__ == "__main__":
     MAC_C_KEY = Keys.COMMAND  # For macOS, replace with Keys.CONTROL on Windows
-    driver = webdriver.Chrome()
+    
+    # Configure Chrome options for headless mode
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    
+    # Initialize driver with options
+    driver = webdriver.Chrome(options=chrome_options)
 
     driver.get("https://stabilityai.instatus.com/history/1")
     try:

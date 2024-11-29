@@ -37,7 +37,7 @@ def analyze_mttr_distribution(start_date, end_date, selected_services):
         service_mapping = {
             'OpenAI:API': 'API',
             'OpenAI:ChatGPT': 'ChatGPT',
-            'OpenAI:Labs': 'Labs',
+            'OpenAI:DALL-E': 'Labs',
             'OpenAI:Playground': 'Playground',
             'Anthropic:API': 'api.anthropic.com',
             'Anthropic:Claude': 'claude.ai',
