@@ -198,7 +198,7 @@ class MyIncidentPage:
 
 
 if __name__ == "__main__":
-    MAC_C_KEY = Keys.COMMAND  # For macOS, replace with Keys.CONTROL on Windows
+    MAC_C_KEY = Keys.COMMAND
     
     # Configure Chrome options for headless mode
     chrome_options = webdriver.ChromeOptions()
