@@ -168,8 +168,12 @@ cython_debug/
 llm_analysis/backend/venv/
 llm_analysis/client/node_modules/
 llm_analysis/client/build/
-llm_analysis/server/static/
 llm_analysis/server/static/plots/
+llm_analysis/server/static/data/backups/
+llm_analysis/server/static/data/raw/
+llm_analysis/server/static/data/state/
+llm_analysis/server/static/additional_analysis/incident_impact_levels/
+
 
 # IDE
 .vscode/
