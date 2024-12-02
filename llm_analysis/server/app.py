@@ -21,6 +21,8 @@ from werkzeug.exceptions import HTTPException
 import traceback
 from werkzeug.serving import WSGIRequestHandler
 from werkzeug.middleware.proxy_fix import ProxyFix
+from scripts.analysis_modules.failure_reasons import analyze_failure_reasons
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(
@@ -239,6 +241,37 @@ def handle_options(path):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     response.headers['Connection'] = 'keep-alive'
     return response
+
+@app.route('/api/analyze-failures', methods=['POST'])
+def analyze_failures():
+    try:
+        data = request.get_json()
+        query = data.get('query')
+        history = data.get('history', [])
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': 'No query provided'
+            }), 400
+
+        # Load the incident data
+        df = pd.read_csv('static/data/incident_stages_all.csv')
+        
+        # Analyze failures based on the query and history
+        analysis = analyze_failure_reasons(df, query=query, history=history)
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis
+        })
+        
+    except Exception as e:
+        logger.exception('Error analyzing failures')
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(

@@ -22,7 +22,8 @@ import {
   Info as InfoIcon,
   Close as CloseIcon,
   LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon
+  DarkMode as DarkModeIcon,
+  Analytics as AnalyticsIcon
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,6 +50,7 @@ function Layout({ children, toggleTheme }) {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Failure Analysis', icon: <AnalyticsIcon />, path: '/failure-analysis' },
     { text: 'About', icon: <InfoIcon />, path: '/about' }
   ];
 

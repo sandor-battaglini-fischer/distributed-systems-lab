@@ -9,6 +9,7 @@ import About from './pages/About';
 import './App.css';
 import { AnalysisProvider } from './context/AnalysisContext';
 import ConnectionStatus from './components/ConnectionStatus';
+import FailureAnalysis from './components/FailureAnalysis';
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -30,6 +31,7 @@ function App() {
           <Layout toggleTheme={toggleTheme}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/failure-analysis" element={<FailureAnalysis />} />
               <Route path="/about" element={<About />} />
             </Routes>
           </Layout>
