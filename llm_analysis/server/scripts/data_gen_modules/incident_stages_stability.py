@@ -262,9 +262,12 @@ def process_folder(input_folder, output_file):
     final_df.to_csv(output_file, index=False)
     print(f"Processed incident stages saved to {output_file}.")
 
+def get_paths():
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # Gets the server directory
+    input_folder = os.path.join(base_dir, "static/data/raw/incident/stabilityAI")
+    output_file = os.path.join(base_dir, "static/data/incident_stages_stab.csv")
+    return input_folder, output_file
 
 # Inputs and Outputs
-input_folder = "/Users/nisha/data/raw/incident/stabilityAI/" #update the file path accordingly
-output_file = "incident_stages_stab.csv"  # Path to the output CSV file
-
+input_folder, output_file = get_paths()
 process_folder(input_folder, output_file)

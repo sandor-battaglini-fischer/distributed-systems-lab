@@ -44,9 +44,9 @@ def determine_service_type(update_title, update_body):
         return "Unknown Service"
 
 def get_archive_path(partition):
-    BASE_DIR = "/Users/nisha/LLM_analysis"  # Adjust this to your project's base folder
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # Gets the server directory
     start_date, end_date = calculate_start_date(partition)
-    archive_folder = os.path.join(BASE_DIR, "data/raw/incident/stabilityAI")
+    archive_folder = os.path.join(BASE_DIR, "static/data/raw/incident/stabilityAI")
     os.makedirs(archive_folder, exist_ok=True)
     file_path = os.path.join(archive_folder, f"incident_history_{start_date}_{end_date}.csv")
     return file_path
@@ -323,7 +323,7 @@ class MyIncidentPage:
 
                 show_all_buttons = self.driver.find_elements(By.XPATH, self.SHOW_ALL_XPATH)
                 if show_all_buttons:
-                    #print(f"Found {len(show_all_buttons)} 'Load More' buttons.")
+                    print(f"Found {len(show_all_buttons)} 'Load More' buttons.")
                 else:
                     print("No 'Load More' buttons found.")
                     break  # Exit if no buttons are found
