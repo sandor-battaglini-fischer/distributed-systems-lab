@@ -105,7 +105,35 @@ This project is a web application built using React for the frontend and Flask f
 
    This will start the React development server on `http://localhost:3000`.
 
-## Using the AI Plot Analysis Feature
+## Features
+
+### Dashboard
+
+The main dashboard provides visualization and analysis of LLM service incidents through various plots and metrics.
+
+### Failure Analysis Chat
+
+An interactive chat interface that allows users to analyze incident patterns and get AI-powered insights about service reliability. The chat interface:
+
+- Maintains conversation context for follow-up questions
+- Provides markdown-formatted responses
+- Supports natural language queries about:
+  - Common failure patterns
+  - Service reliability trends
+  - Impact analysis
+  - Recovery time patterns
+  - Root cause categorization
+
+Example queries:
+
+- "What are the most common types of failures?"
+- "Which services had the longest downtime?"
+- "Analyze the pattern of authentication failures"
+- "Tell me more about the impact levels of incidents"
+
+The analysis is powered by GPT-4o-mini and uses the historical incident data to provide data-backed insights.
+
+### AI Plot Analysis
 
 The application includes an AI-powered plot analysis feature that can analyze visualizations and provide insights. To use this feature:
 
