@@ -385,7 +385,7 @@ def merge_and_deduplicate(existing_df, new_df):
     expected_columns = [
         'incident_id', 'Incident_Title', 'incident_impact_level', 'Incident_color', 'provider',
         'Playground', 'API', 'Labs', 'ChatGPT', 'api.anthropic.com', 'claude.ai', 
-        'console.anthropic.com', 'Character.AI',
+        'console.anthropic.com', 'Character.AI', 'StabilityAI',
         'investigating_flag', 'investigating_timestamp', 'investigating_description',
         'identified_flag', 'identified_timestamp', 'identified_description',
         'monitoring_flag', 'monitoring_timestamp', 'monitoring_description',
@@ -402,11 +402,17 @@ def merge_and_deduplicate(existing_df, new_df):
         if col not in existing_df.columns:
             # Get dtype from new_df if available, otherwise use object
             dtype = new_df[col].dtype if col in new_df.columns else 'object'
-            existing_df[col] = pd.Series(dtype=dtype)
+            if col == 'StabilityAI':  # Initialize StabilityAI column with zeros
+                existing_df[col] = 0
+            else:
+                existing_df[col] = pd.Series(dtype=dtype)
         if col not in new_df.columns:
             # Use dtype from existing_df
             dtype = dtype_map.get(col, 'object')
-            new_df[col] = pd.Series(dtype=dtype)
+            if col == 'StabilityAI':  # Initialize StabilityAI column with zeros
+                new_df[col] = 0
+            else:
+                new_df[col] = pd.Series(dtype=dtype)
     
     # Ensure columns are in the expected order
     existing_df = existing_df[expected_columns]
@@ -421,6 +427,9 @@ def merge_and_deduplicate(existing_df, new_df):
     
     # Remove duplicates based on incident_id, keeping the first (most recent) occurrence
     combined_df = combined_df.drop_duplicates(subset=['incident_id'], keep='first')
+    
+    # Set StabilityAI column to 1 for StabilityAI incidents
+    combined_df.loc[combined_df['provider'] == 'StabilityAI', 'StabilityAI'] = 1
     
     # Ensure final dataframe has the expected column order
     return combined_df[expected_columns]
