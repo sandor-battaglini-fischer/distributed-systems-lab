@@ -131,6 +131,51 @@ The application includes an AI-powered plot analysis feature that can analyze vi
    - Verify your API key is correctly set in the .env file
    - Check the server logs for any API-related errors
 
+## Data Collection and Updates
+
+The application includes scripts to collect and update incident data from various LLM providers. There are two main data collection scripts:
+
+1. **Regular Data Updates** - Collects recent incidents:
+
+   ```bash
+   cd server/scripts
+   python run_incident_scrapers.py
+   ```
+
+   This script:
+   - Collects new incidents from OpenAI, Anthropic, Character.AI, and StabilityAI
+   - Updates the existing incident database with new data
+   - Runs automatically via cron job in production
+   - Runs both the StabilityAI.py file and the incident_scraper_oac.py file
+
+2. **Historical Data Collection** - One-time collection of all historical incidents:
+
+   ```bash
+   cd server/scripts/data_gen_modules
+   python incident_scraper_oac_historical.py
+   ```
+
+   This script:
+   - Collects all available historical incidents
+   - Creates a complete historical database
+   - Should be run only once when setting up a new instance
+
+### Troubleshooting Data Collection
+
+If you encounter issues during data collection:
+
+1. **Check the Logs:**
+   - View server/logs/incident_scrapers.log for detailed error messages
+   - Common issues include network timeouts and parsing errors
+
+2. **Browser Issues:**
+   - If you see WebDriver errors, ensure Chrome is properly installed
+   - Try running without headless mode for debugging by removing the '--headless=new' option
+
+3. **Data Validation Failures:**
+   - Check that the source websites haven't changed their structure
+   - Verify network connectivity to all provider status pages
+
 ### Learn More
 
 - [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
