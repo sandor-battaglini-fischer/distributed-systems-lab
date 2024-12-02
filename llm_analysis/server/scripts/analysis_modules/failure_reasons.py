@@ -41,11 +41,12 @@ def analyze_failure_reasons(df, query=None, history=None):
             Format your responses using markdown for better readability.
             Focus on providing specific insights backed by data.
             Be concise but informative.
-            You can reference previous messages to maintain context."""
+            You can reference previous messages to maintain context.
+            Answer any non-related questions with "I'm sorry, I can only answer questions about LLM service incidents cause I'm just a chill guy :)"
+            """
         }
     ]
     
-    # Add chat history if provided
     if history:
         for msg in history:
             messages.append({
@@ -53,7 +54,6 @@ def analyze_failure_reasons(df, query=None, history=None):
                 "content": msg["content"]
             })
     
-    # Add current query
     messages.append({
         "role": "user",
         "content": query

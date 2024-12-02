@@ -16,7 +16,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import ReactMarkdown from 'react-markdown';
 import PersonIcon from '@mui/icons-material/Person';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 
 const FailureAnalysis = () => {
     const [query, setQuery] = useState('');
@@ -77,7 +77,7 @@ const FailureAnalysis = () => {
     return (
         <Box sx={{ p: 3, height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Typography variant="h4" gutterBottom>
-                Failure Analysis Chat
+                LLM Service Incident Analysis Chat
             </Typography>
             
             {/* Initial instructions card */}
@@ -128,7 +128,7 @@ const FailureAnalysis = () => {
                                         bgcolor: message.role === 'user' ? 'primary.main' : 'secondary.main'
                                     }}
                                 >
-                                    {message.role === 'user' ? <PersonIcon /> : <SmartToyIcon />}
+                                    {message.role === 'user' ? <PersonIcon /> : <PsychologyIcon />}
                                 </Avatar>
                                 <Paper 
                                     elevation={1}
