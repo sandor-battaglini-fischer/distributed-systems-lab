@@ -167,7 +167,7 @@ def process_file(file_path):
     column_order = [
         "incident_id", "Incident_Title", "incident_impact_level", "Incident_color", "provider",
         "Playground", "API", "Labs", "ChatGPT", "api.anthropic.com", "claude.ai", "console.anthropic.com",
-        "Character.AI", "investigating_flag", "investigating_timestamp", "investigating_description",
+        "Character.AI", "StabilityAI", "investigating_flag", "investigating_timestamp", "investigating_description",
         "identified_flag", "identified_timestamp", "identified_description", "monitoring_flag",
         "monitoring_timestamp", "monitoring_description", "resolved_flag", "resolved_timestamp",
         "resolved_description", "postmortem_flag", "postmortem_timestamp", "postmortem_description",
@@ -175,41 +175,44 @@ def process_file(file_path):
     ]
 
     for idx, row in raw_data.iterrows():
-        incident_id = generate_incident_id()  # Generate 12-character UUID for each incident
-        incident_title = row["Incident_Title"]  # Assuming you have this field in your input file
-        impact_level = row["Incident_Impact"]  # Directly use the Incident_Impact value from the input file
-        color = row.get("Incident_Color", "")  # Assuming a default color field
-        provider = row.get("Provider", "")  # Assuming provider field is present
+        incident_id = generate_incident_id()
+        incident_title = row["Incident_Title"]
+        impact_level = row["Incident_Impact"]
+        color = row.get("Incident_color", "")
+        provider = "StabilityAI"
         description = row.get("Incident_Title", "") + " " + row.get("Updates", "")
-        service_flags = identify_services(description)
+        
+        service_flags = {
+            "Playground": 0,
+            "API": 0,
+            "Labs": 0,
+            "ChatGPT": 0,
+            "api.anthropic.com": 0,
+            "claude.ai": 0,
+            "console.anthropic.com": 0,
+            "Character.AI": 0,
+            "StabilityAI": 1
+        }
 
-        # checking raw updates field
         updates_field = row.get("Updates", "")
-        #print(f"Processing row {idx} with Updates: {updates_field}")
-
         if isinstance(updates_field, str):
             updates_field = clean_updates_str(updates_field)
 
         updates, start_timestamp, identified_timestamp, close_timestamp = parse_updates(updates_field)
 
-        # Checking parsed updates
-        #print(f"Parsed Updates: {updates}")
-
         if start_timestamp is None and close_timestamp is not None:
             start_timestamp = close_timestamp
 
-        # Ensure identified timestamp is set if missing
         if identified_timestamp is None:
             identified_timestamp = start_timestamp
 
         if start_timestamp is None and identified_timestamp is not None:
-            start_timestamp = identified_timestamp  # Set start_timestamp to identified_timestamp
+            start_timestamp = identified_timestamp
 
-        # Ensuring timestamps are formatted correctly
         time_span = format_time_span(start_timestamp, close_timestamp)
         over_one_day = (close_timestamp - start_timestamp).days > 1 if start_timestamp and close_timestamp else False
 
-        # Converting the timestamps to the string format
+        # Converting timestamps to string format
         start_timestamp = start_timestamp.strftime("%Y-%m-%d %H:%M:%S+00:00") if start_timestamp else None
         close_timestamp = close_timestamp.strftime("%Y-%m-%d %H:%M:%S+00:00") if close_timestamp else None
         identified_timestamp = identified_timestamp.strftime("%Y-%m-%d %H:%M:%S+00:00") if identified_timestamp else None
@@ -218,8 +221,8 @@ def process_file(file_path):
             'incident_id': incident_id,
             'Incident_Title': incident_title,
             'incident_impact_level': impact_level,
-            'Incident_color': row["Incident_color"],
-            'provider': "StabilityAI",
+            'Incident_color': color,
+            'provider': provider,
             **service_flags,
             'investigating_flag': updates['investigating_flag'],
             'investigating_timestamp': updates['investigating_timestamp'],
@@ -244,7 +247,8 @@ def process_file(file_path):
 
     # Convert the list of dictionaries into a DataFrame
     df = pd.DataFrame(processed_data)
-
+    
+    # Ensure columns are in the correct order
     df = df[column_order]
     return df
 

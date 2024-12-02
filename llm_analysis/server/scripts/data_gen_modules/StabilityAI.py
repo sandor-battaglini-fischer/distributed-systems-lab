@@ -15,6 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.support.color import Color
+from pathlib import Path
 
 
 def calculate_start_date(end_date):
@@ -51,6 +52,100 @@ def get_archive_path(partition):
     file_path = os.path.join(archive_folder, f"incident_history_{start_date}_{end_date}.csv")
     return file_path
 
+def load_existing_incidents(raw_data_dir):
+    """Load existing incidents from raw CSV files."""
+    all_incidents = pd.DataFrame()
+    
+    if not os.path.exists(raw_data_dir):
+        print(f"Error: Directory not found: {raw_data_dir}")
+        return all_incidents
+        
+    csv_files = [f for f in os.listdir(raw_data_dir) if f.endswith('.csv')]
+    print(f"\nFound {len(csv_files)} CSV files in {raw_data_dir}:")
+    
+    for file_name in csv_files:
+        file_path = os.path.join(raw_data_dir, file_name)
+        print(f"\nReading file: {file_name}")
+        try:
+            df = pd.read_csv(file_path)
+            print(f"Found {len(df)} incidents in {file_name}")
+            print(f"Columns: {df.columns.tolist()}")
+            all_incidents = pd.concat([all_incidents, df], ignore_index=True)
+        except Exception as e:
+            print(f"Error reading file {file_name}: {e}")
+            traceback.print_exc()
+    
+    print(f"\nTotal incidents loaded: {len(all_incidents)}")
+    return all_incidents
+
+def get_latest_incident_date(df):
+    """Get the most recent incident date from existing data."""
+    print(f"\nChecking {len(df)} incidents for latest date")
+    
+    if len(df) > 0:
+        if 'Updates' not in df.columns:
+            print("Error: 'Updates' column not found in DataFrame")
+            print(f"Available columns: {df.columns.tolist()}")
+            return None
+            
+        # Parse the first update's timestamp from each incident
+        latest_dates = []
+        for idx, updates in enumerate(df['Updates']):
+            try:
+                print(f"\nProcessing updates for incident {idx + 1}:")
+                print(f"Raw updates: {updates[:200]}...")  # Print first 200 chars
+                
+                # Convert Python string representation to proper JSON
+                updates_str = updates.replace("'", '"')
+                updates_list = json.loads(updates_str)
+                
+                if not isinstance(updates_list, list):
+                    print(f"Warning: updates_list is not a list, type: {type(updates_list)}")
+                    continue
+                    
+                if not updates_list:
+                    print("Warning: updates_list is empty")
+                    continue
+                    
+                first_update = updates_list[0]
+                if 'Update_Timestamp' not in first_update:
+                    print(f"Warning: Update_Timestamp not found in first update: {first_update}")
+                    continue
+                    
+                timestamp = pd.to_datetime(first_update['Update_Timestamp'], utc=True)
+                latest_dates.append(timestamp)
+                print(f"Successfully parsed timestamp: {timestamp}")
+                
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error for incident {idx + 1}: {e}")
+                try:
+                    # Try using ast.literal_eval as a fallback
+                    import ast
+                    updates_list = ast.literal_eval(updates)
+                    if updates_list and isinstance(updates_list, list):
+                        first_update = updates_list[0]
+                        if 'Update_Timestamp' in first_update:
+                            timestamp = pd.to_datetime(first_update['Update_Timestamp'], utc=True)
+                            latest_dates.append(timestamp)
+                            print(f"Successfully parsed timestamp using ast: {timestamp}")
+                except Exception as e2:
+                    print(f"Fallback parsing failed: {e2}")
+            except KeyError as e:
+                print(f"Key error for incident {idx + 1}: {e}")
+            except IndexError as e:
+                print(f"Index error for incident {idx + 1}: {e}")
+            except Exception as e:
+                print(f"Unexpected error for incident {idx + 1}: {e}")
+                
+        if latest_dates:
+            latest_date = max(latest_dates)
+            print(f"\nFound latest date: {latest_date}")
+            return latest_date
+        else:
+            print("\nNo valid dates found in any incidents")
+    
+    return None
+
 class MyIncidentPage:
     # Class-specific XPath constants
     UPDATE_XPATH = "//div[contains(@class, 'incident-update')]"
@@ -63,6 +158,29 @@ class MyIncidentPage:
     def __init__(self, driver):
         self.driver = driver
         self.c_key = MAC_C_KEY
+        self.latest_known_date = None
+
+    def set_latest_known_date(self, date):
+        """Set the latest known incident date to check against."""
+        self.latest_known_date = date
+
+    def should_continue_collection(self, incident):
+        """Check if we should continue collecting incidents based on date."""
+        try:
+            # Get the first update's timestamp
+            updates = self.get_incident_updates()
+            updates_list = json.loads(updates)
+            if updates_list and isinstance(updates_list, list):
+                first_update = updates_list[0]
+                if 'Update_Timestamp' in first_update:
+                    incident_date = pd.to_datetime(first_update['Update_Timestamp'], utc=True)
+                    if self.latest_known_date and incident_date <= self.latest_known_date:
+                        print(f"Found already collected incident from {incident_date}, stopping collection.")
+                        return False
+            return True
+        except Exception as e:
+            print(f"Error checking incident date: {e}")
+            return True
 
     def get_incident_updates(self):
         try:
@@ -373,21 +491,26 @@ class MyIncidentPage:
     def collect_data_through_pagination(self):
         try:
             while True:
-
                 self.show_all_incidents()
-
                 incident_list = self.get_incident_list()
 
-                if not incident_list:  # handle both None or empty list cases
+                if not incident_list:
                     print("No incidents found. Ending collection.")
-                    break  # Break out of the loop if no incidents
+                    break
 
-                incident_df = pd.DataFrame()  # Initialize an empty DataFrame for incidents
+                incident_df = pd.DataFrame()
                 original_window = self.driver.current_window_handle
+                stop_collection = False
 
                 for incident in incident_list:
                     record = self.switch_to_incident(incident, original_window)
-                    incident_df = pd.concat([incident_df, record],  ignore_index=True)  # Concatenate new record to DataFrame
+                    
+                    # Check if we should continue based on date
+                    if not self.should_continue_collection(incident):
+                        stop_collection = True
+                        break
+                    
+                    incident_df = pd.concat([incident_df, record], ignore_index=True)
 
                 # Archive the collected data if the DataFrame is not empty
                 if not incident_df.empty:
@@ -395,10 +518,14 @@ class MyIncidentPage:
                 else:
                     print("No data collected on this page.")
 
-                # Try to navigate to the next page or check for the previous page
+                if stop_collection:
+                    print("Reached already collected incidents. Stopping collection.")
+                    break
+
+                # Try to navigate to the next page
                 if not self.go_to_previous_page():
                     print("No more pages to navigate. Ending incident collection.")
-                    break  # End collection if no more pages are available
+                    break
 
         except Exception as e:
             print("Error during pagination:", e)
@@ -415,11 +542,26 @@ if __name__ == "__main__":
     chrome_options.add_argument("--no-sandbox")  # Required for some environments
     chrome_options.add_argument("--disable-dev-shm-usage")  # Handle shared memory issues in Docker
 
-    driver = webdriver.Chrome(options=chrome_options)
+    # Get paths
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    raw_data_dir = os.path.join(base_dir, "static/data/raw/incident/stabilityAI")
+    
+    # Load existing incidents and get latest date
+    existing_df = load_existing_incidents(raw_data_dir)
+    latest_date = get_latest_incident_date(existing_df)
+    
+    if latest_date:
+        print(f"Found {len(existing_df)} existing incidents up to {latest_date}")
+    else:
+        print("No existing incidents found, will collect all available incidents")
 
+    driver = webdriver.Chrome(options=chrome_options)
     driver.get("https://stabilityai.instatus.com/history/1")
+    
     try:
         incident_page = MyIncidentPage(driver)
+        if latest_date:
+            incident_page.set_latest_known_date(latest_date)
         incident_page.collect_data_through_pagination()
     finally:
         driver.quit()

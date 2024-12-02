@@ -41,10 +41,32 @@ export const analyzeData = async (data) => {
     }
 };
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const fetchWithRetry = async (url, options, retries = MAX_RETRIES) => {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response;
+  } catch (error) {
+    if (retries > 0 && (error.message.includes('ECONNRESET') || error.message.includes('Failed to fetch'))) {
+      console.log(`Retrying... ${retries} attempts remaining`);
+      await sleep(RETRY_DELAY);
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+};
+
 export const analyzePlot = async (plotUrl, plotType, startDate, endDate, services) => {
   try {
-    // Fetch the image data from the plot URL
-    const imageResponse = await fetch(plotUrl);
+    // Fetch the image data from the plot URL with retry
+    const imageResponse = await fetchWithRetry(plotUrl);
     const blob = await imageResponse.blob();
     
     // Convert blob to base64
@@ -54,8 +76,8 @@ export const analyzePlot = async (plotUrl, plotType, startDate, endDate, service
       reader.readAsDataURL(blob);
     });
 
-    // Send the base64 image to the analysis endpoint
-    const response = await fetch('/api/analyze-plot', {
+    // Send the base64 image to the analysis endpoint with retry
+    const response = await fetchWithRetry('/api/analyze-plot', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -68,10 +90,6 @@ export const analyzePlot = async (plotUrl, plotType, startDate, endDate, service
         services
       }),
     });
-    
-    if (response.status === 405) {
-      throw new Error("Please use production server. This feature is only available in production.");
-    }
     
     const data = await response.json();
     

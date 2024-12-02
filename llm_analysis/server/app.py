@@ -19,6 +19,8 @@ from scripts.analysis import (
 )
 from werkzeug.exceptions import HTTPException
 import traceback
+from werkzeug.serving import WSGIRequestHandler
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
 logging.basicConfig(
@@ -31,10 +33,21 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 logging.getLogger('PIL').setLevel(logging.WARNING) 
 
+# Increase timeout for WSGI server
+WSGIRequestHandler.protocol_version = "HTTP/1.1"
+
 app = Flask(__name__, static_folder='../client/build', static_url_path='')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
-app.config['HOST'] = '0.0.0.0'  
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.config.update(
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max-limit
+    SEND_FILE_MAX_AGE_DEFAULT=0,  # Disable caching for development
+    PERMANENT_SESSION_LIFETIME=1800,  # 30 minutes
+    HOST='0.0.0.0',
+    TIMEOUT=300,  # 5 minutes timeout
+    SERVER_NAME=None,  # Allow all host headers
+    PREFERRED_URL_SCHEME='http',
+    PROPAGATE_EXCEPTIONS=True,
+)
 
 # Ensure plots directory exists
 PLOTS_DIR = os.path.join(os.path.dirname(__file__), 'static', 'plots')
@@ -218,5 +231,23 @@ def serve_plot(filename):
         logger.error(f"Error serving plot {filename}: {str(e)}")
         return jsonify({'error': 'Plot not found'}), 404
 
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    response = app.make_default_options_response()
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Connection'] = 'keep-alive'
+    return response
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        debug=True,
+        threaded=True,
+        use_reloader=True,
+        use_debugger=True,
+        use_evalex=True,
+        passthrough_errors=False
+    )
