@@ -26,7 +26,7 @@ Data analysis:
     - use RAG to train on course material (local inference)
     - Prompt engineer based on previous knowledge
   - API vs GUI version (ChatGPT/Claude) analysis (hypothesis: API more stable)
-  - (S) Geographical distribution of outages from downdetector
+  - (S) Geographical distribution of outages from downdetector (might be too hard to automate)
   - (S) Predictive failure model:
     - Time series modelling (when will failures occur)
     - How fast will failures be resolved
