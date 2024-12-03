@@ -21,26 +21,26 @@ const generateGlassmorphism = (mode, opacity = 0.1, blur = 10) => ({
 // Modern color palette with gradients
 const colors = {
   primary: {
-    main: '#2D46B9',
-    light: '#5670EC',
-    dark: '#1A2C8A',
+    main: '#3B82F6',
+    light: '#60A5FA',
+    dark: '#2563EB',
     contrastText: '#ffffff',
   },
   secondary: {
-    main: '#F86624',
-    light: '#FF8A4C',
-    dark: '#D14800',
+    main: '#6366F1',
+    light: '#818CF8',
+    dark: '#4F46E5',
     contrastText: '#ffffff',
   },
   success: {
-    main: '#1DB954',
-    light: '#1ED760',
-    dark: '#168D40',
+    main: '#10B981',
+    light: '#34D399',
+    dark: '#059669',
   },
   error: {
-    main: '#FF4B4B',
-    light: '#FF6B6B',
-    dark: '#D32F2F',
+    main: '#EF4444',
+    light: '#F87171',
+    dark: '#DC2626',
   },
 };
 
@@ -174,17 +174,17 @@ const darkTheme = createTheme({
     success: colors.success,
     error: colors.error,
     background: {
-      default: '#0A1929',
-      paper: alpha('#0F2744', 0.7),
-      card: alpha('#162B44', 0.5),
-      gradient: generateGradient(colors.primary.light, colors.secondary.light, 0.1),
-      gradientStrong: generateGradient(colors.primary.light, colors.secondary.light, 0.15),
+      default: '#0F172A',
+      paper: alpha('#1E293B', 0.7),
+      card: alpha('#1E293B', 0.5),
+      gradient: generateGradient(colors.primary.light, colors.secondary.light, 0.08),
+      gradientStrong: generateGradient(colors.primary.light, colors.secondary.light, 0.12),
     },
     text: {
-      primary: '#FFFFFF',
-      secondary: '#B8B8B8',
+      primary: '#F1F5F9',
+      secondary: '#94A3B8',
     },
-    divider: 'rgba(255, 255, 255, 0.08)',
+    divider: 'rgba(148, 163, 184, 0.08)',
   },
   shape: {
     borderRadius: 16,

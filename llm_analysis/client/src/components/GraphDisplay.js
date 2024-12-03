@@ -1,9 +1,11 @@
 import React, { useState, useEffect, forwardRef } from 'react';
-import { Box, Paper, CircularProgress, Typography, Chip, useTheme, useMediaQuery, Button, IconButton, Tooltip, LinearProgress, Skeleton, Fade, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Paper, CircularProgress, Typography, Chip, useTheme, useMediaQuery, Button, IconButton, Tooltip, LinearProgress, Skeleton, Fade, FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material';
 import { useAnalysis } from '../context/AnalysisContext';
 import { 
   SaveAlt as SaveIcon,
-  Download as DownloadIcon 
+  Download as DownloadIcon,
+  Analytics as AnalyticsIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import JSZip from 'jszip';
 import { analyzePlot } from '../utils/api';
@@ -166,6 +168,68 @@ const PlotDetails = ({ details }) => {
   );
 };
 
+// Add new PlotAnalysisDialog component
+const PlotAnalysisDialog = ({ open, onClose, plotTitle, analysis, loading, error }) => {
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          backgroundColor: 'background.paper',
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        pb: 1
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AnalyticsIcon color="primary" />
+          <Typography variant="h6">
+            Analysis: {plotTitle}
+          </Typography>
+        </Box>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        ) : (
+          <Typography 
+            variant="body1"
+            sx={{
+              whiteSpace: 'pre-line',
+              '& strong': {
+                fontWeight: 600,
+                color: 'primary.main',
+              },
+            }}
+          >
+            {analysis}
+          </Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const GraphDisplay = forwardRef((props, ref) => {
   const { plots, setPlots, loading } = useAnalysis();
   const [imageErrors, setImageErrors] = useState({});
@@ -178,6 +242,10 @@ const GraphDisplay = forwardRef((props, ref) => {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
   const [selectedPlotForAnalysis, setSelectedPlotForAnalysis] = useState(null);
+  const [selectedPlotForDialog, setSelectedPlotForDialog] = useState(null);
+  const [dialogAnalysis, setDialogAnalysis] = useState('');
+  const [dialogLoading, setDialogLoading] = useState(false);
+  const [dialogError, setDialogError] = useState(null);
 
   useEffect(() => {
     setImageErrors({});
@@ -360,6 +428,35 @@ const GraphDisplay = forwardRef((props, ref) => {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  // Add new function to handle individual plot analysis
+  const handleAnalyzeIndividual = async (figureId) => {
+    setSelectedPlotForDialog(figureId);
+    setDialogLoading(true);
+    setDialogError(null);
+    setDialogAnalysis('');
+
+    try {
+      const plotUrl = plots[figureId];
+      const result = await analyzePlot(plotUrl, figureId);
+      if (result.success) {
+        setDialogAnalysis(result.analysis);
+      } else {
+        setDialogError(result.error || 'Failed to analyze plot');
+      }
+    } catch (error) {
+      setDialogError(error.message || 'Failed to analyze plot. Please try again.');
+    } finally {
+      setDialogLoading(false);
+    }
+  };
+
+  // Add function to handle dialog close
+  const handleCloseDialog = () => {
+    setSelectedPlotForDialog(null);
+    setDialogAnalysis('');
+    setDialogError(null);
   };
 
   if (loading) {
@@ -556,22 +653,38 @@ const GraphDisplay = forwardRef((props, ref) => {
                       </Typography>
                     </Box>
                     {plots[figureId] && (
-                      <Tooltip title="Save Plot">
-                        <IconButton 
-                          onClick={() => handleSavePlot(figureId)}
-                          size="small"
-                          sx={{
-                            ml: 1,
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              transform: 'translateY(-2px)',
-                              color: 'primary.main'
-                            }
-                          }}
-                        >
-                          <SaveIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Tooltip title="Analyze Plot">
+                          <IconButton
+                            onClick={() => handleAnalyzeIndividual(figureId)}
+                            size="small"
+                            sx={{
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                color: 'primary.main'
+                              }
+                            }}
+                          >
+                            <AnalyticsIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Save Plot">
+                          <IconButton 
+                            onClick={() => handleSavePlot(figureId)}
+                            size="small"
+                            sx={{
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                color: 'primary.main'
+                              }
+                            }}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     )}
                   </Box>
 
@@ -640,6 +753,15 @@ const GraphDisplay = forwardRef((props, ref) => {
             plotConfigs={plotConfigs}
           />
         )}
+
+        <PlotAnalysisDialog
+          open={!!selectedPlotForDialog}
+          onClose={handleCloseDialog}
+          plotTitle={selectedPlotForDialog ? plotConfigs[selectedPlotForDialog].title : ''}
+          analysis={dialogAnalysis}
+          loading={dialogLoading}
+          error={dialogError}
+        />
       </Box>
     </Fade>
   );

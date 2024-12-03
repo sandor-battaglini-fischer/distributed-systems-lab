@@ -28,7 +28,7 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import GraphDisplay from './GraphDisplay';
+import GraphDisplay from '../components/GraphDisplay';
 import { useAnalysis } from '../context/AnalysisContext';
 
 function Dashboard() {

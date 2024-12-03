@@ -198,7 +198,7 @@ def handle_exception(e):
         'details': traceback.format_exc()
     }), 500
 
-# Add these routes for serving the React app
+# Serving React
 @app.route('/')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')
