@@ -10,6 +10,7 @@ import './App.css';
 import { AnalysisProvider } from './context/AnalysisContext';
 import ConnectionStatus from './components/ConnectionStatus';
 import FailureAnalysis from './pages/FailureAnalysis';
+import DataTable from './pages/DataTable';
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -33,6 +34,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/failure-analysis" element={<FailureAnalysis />} />
               <Route path="/about" element={<About />} />
+              <Route path="/data" element={<DataTable />} />
             </Routes>
           </Layout>
         </Router>

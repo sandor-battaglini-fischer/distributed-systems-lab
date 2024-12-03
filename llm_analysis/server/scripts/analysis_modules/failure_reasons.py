@@ -10,17 +10,33 @@ def analyze_failure_reasons(df, query=None, history=None):
     client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
     
     try:
-        # Define all expected columns based on the dataset structure
+        # Define all expected columns based on the complete dataset structure
         required_columns = [
+            # Incident identifiers and basic info
             'incident_id', 'Incident_Title', 'incident_impact_level', 'Incident_color',
-            'provider', 'Playground', 'API', 'Labs', 'ChatGPT', 'api.anthropic.com',
-            'claude.ai', 'console.anthropic.com', 'Character.AI', 'StabilityAI',
-            'investigating_flag', 'investigating_timestamp', 'investigating_description',
-            'identified_flag', 'identified_timestamp', 'identified_description',
-            'monitoring_flag', 'monitoring_timestamp', 'monitoring_description',
-            'resolved_flag', 'resolved_timestamp', 'resolved_description',
-            'postmortem_flag', 'postmortem_timestamp', 'postmortem_description',
-            'start_timestamp', 'close_timestamp', 'time_span', 'over_one_day'
+            'provider',
+            
+            # Service impact flags
+            'Playground', 'API', 'Labs', 'ChatGPT', 
+            'api.anthropic.com', 'claude.ai', 'console.anthropic.com',
+            'Character.AI', 'StabilityAI',
+            
+            # Incident stage flags
+            'investigating_flag', 'identified_flag', 'monitoring_flag', 
+            'resolved_flag', 'postmortem_flag',
+            
+            # Timestamp columns
+            'investigating_timestamp', 'identified_timestamp', 
+            'monitoring_timestamp', 'resolved_timestamp', 
+            'postmortem_timestamp', 'start_timestamp', 'close_timestamp',
+            
+            # Description columns
+            'investigating_description', 'identified_description',
+            'monitoring_description', 'resolved_description',
+            'postmortem_description',
+            
+            # Duration related columns
+            'time_span', 'over_one_day'
         ]
         
         # Calculate dataset timeframe

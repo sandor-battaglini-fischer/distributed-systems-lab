@@ -23,6 +23,7 @@ from werkzeug.serving import WSGIRequestHandler
 from werkzeug.middleware.proxy_fix import ProxyFix
 from scripts.analysis_modules.failure_reasons import analyze_failure_reasons
 import pandas as pd
+from routes.incidents import incidents_bp
 
 # Configure logging
 logging.basicConfig(
@@ -62,6 +63,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # scripts_dir = "scripts"
 # Update to:
 scripts_dir = os.path.join(BASE_DIR, "scripts")
+
+app.register_blueprint(incidents_bp)
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
