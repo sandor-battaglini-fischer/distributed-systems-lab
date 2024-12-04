@@ -1,59 +1,30 @@
-import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import datetime
-from matplotlib.ticker import PercentFormatter
-from .utils import safe_convert_timezone
-import warnings
-
-warnings.filterwarnings('ignore', category=FutureWarning)
+from .utils import (
+    load_and_prepare_data,
+    get_services_to_analyze,
+    setup_plotting_style
+)
 
 def analyze_mttr_distribution(start_date, end_date, selected_services):
     """
     Analyze and visualize MTTR distribution across services
     """
     try:
-        # Convert string dates to pandas datetime with UTC timezone
-        start_date = pd.to_datetime(start_date).tz_localize('UTC')
-        end_date = pd.to_datetime(end_date).tz_localize('UTC')
-
-        # Read the data
-        data_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
-                                'static', 'data', 'incident_stages.csv')
+        # Load and prepare data
+        df = load_and_prepare_data(
+            start_date, 
+            end_date,
+            timestamp_columns=['investigating_timestamp', 'resolved_timestamp']
+        )
         
-        if not os.path.exists(data_path):
-            raise FileNotFoundError(f"Data file not found at {data_path}")
-
-        df = pd.read_csv(data_path)
-        df = safe_convert_timezone(df, ['investigating_timestamp', 'resolved_timestamp'])
-
-        # Filter by date range
-        df = df[(df['investigating_timestamp'] >= start_date) & 
-                (df['investigating_timestamp'] <= end_date)]
-
-        # Map selected services to CSV column names
-        service_mapping = {
-            'OpenAI:API': 'API',
-            'OpenAI:ChatGPT': 'ChatGPT',
-            'OpenAI:Labs': 'Labs',
-            'OpenAI:Playground': 'Playground',
-            'Anthropic:API': 'api.anthropic.com',
-            'Anthropic:Claude': 'claude.ai',
-            'Anthropic:Console': 'console.anthropic.com',
-            'Character.AI:Character.AI': 'Character.AI'
-        }
-
-        services_to_analyze = []
-        for service in selected_services:
-            if service in service_mapping:
-                mapped_service = service_mapping[service]
-                if mapped_service in df.columns:
-                    services_to_analyze.append(mapped_service)
-
-        if not services_to_analyze:
-            raise ValueError("No valid services selected for analysis")
+        # Get services to analyze
+        services_to_analyze = get_services_to_analyze(selected_services)
+        
+        # Setup plotting style
+        setup_plotting_style()
 
         # Create figure with two subplots
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 12))

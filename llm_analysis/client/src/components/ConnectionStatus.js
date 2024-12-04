@@ -15,7 +15,7 @@ const ConnectionStatus = () => {
 
         // Check immediately and then every 30 seconds
         checkConnection();
-        const interval = setInterval(checkConnection, 30000);
+        const interval = setInterval(checkConnection, 60000);
 
         return () => clearInterval(interval);
     }, []);

@@ -1,4 +1,4 @@
-numpy==1.26.4
+numpy==1.24.3
 pandas==2.2.1
 matplotlib==3.8.3
 seaborn==0.13.2
@@ -7,9 +7,9 @@ Flask-CORS==4.0.0
 Werkzeug==3.0.1
 gunicorn==21.2.0
 
-openai==1.12.0  # For GPT-4 Vision API
-anthropic==0.8.1  #
-python-dotenv==1.0.0  # For environment variables
+openai==1.12.0
+anthropic==0.8.1
+python-dotenv==1.0.0
 pillow==10.2.0  
 tenacity==8.2.3 
 
@@ -24,3 +24,6 @@ idna==3.6
 base64io==1.0.3
 
 selenium==4.27.1
+
+scikit-learn==1.2.2
+tensorflow

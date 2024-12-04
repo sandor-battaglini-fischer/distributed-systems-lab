@@ -22,14 +22,49 @@ import {
   Info as InfoIcon,
   Close as CloseIcon,
   LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon
+  DarkMode as DarkModeIcon,
+  Analytics as AnalyticsIcon,
+  TableChart as TableChartIcon,
+  Timeline as TimelineIcon
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 const drawerWidth = 240;
+
+// Navigation items configuration
+const navigationItems = [
+  { 
+    text: 'Dashboard', 
+    icon: <DashboardIcon />, 
+    path: '/',
+    description: 'Overview and key metrics'
+  },
+  { 
+    text: 'Data Table', 
+    icon: <TableChartIcon />, 
+    path: '/data',
+    description: 'Detailed incident records'
+  },
+  { 
+    text: 'Failure Analysis', 
+    icon: <AnalyticsIcon />, 
+    path: '/failure-analysis',
+    description: 'In-depth analysis tools'
+  },
+  { 
+    text: 'Predictive Analysis', 
+    icon: <TimelineIcon />, 
+    path: '/predictive-analysis',
+    description: 'Future incident predictions'
+  },
+  { 
+    text: 'About', 
+    icon: <InfoIcon />, 
+    path: '/about',
+    description: 'System information'
+  }
+];
 
 function Layout({ children, toggleTheme }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -42,152 +77,102 @@ function Layout({ children, toggleTheme }) {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'About', icon: <InfoIcon />, path: '/about' }
-  ];
-
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  const NavigationList = () => (
+    <List>
+      {navigationItems.map((item) => (
+        <ListItem
+          key={item.path}
+          component={Link}
+          to={item.path}
+          selected={location.pathname === item.path}
+          sx={{
+            borderRadius: 1,
+            mx: 1,
+            mb: 0.5,
+            color: 'text.primary',
+            '&.Mui-selected': {
+              bgcolor: `${theme.palette.primary.main}15`,
+              color: 'primary.main',
+              '& .MuiListItemIcon-root': {
+                color: 'primary.main',
+              },
+            },
+            '&:hover': {
+              bgcolor: `${theme.palette.primary.main}08`,
+            },
+          }}
+        >
+          <ListItemIcon sx={{ 
+            minWidth: 40,
+            color: location.pathname === item.path ? 'primary.main' : 'inherit'
+          }}>
+            {item.icon}
+          </ListItemIcon>
+          <ListItemText 
+            primary={item.text}
+            secondary={item.description}
+            primaryTypographyProps={{
+              variant: 'body2',
+              fontWeight: location.pathname === item.path ? 600 : 400
+            }}
+            secondaryTypographyProps={{
+              variant: 'caption',
+              sx: { opacity: 0.7 }
+            }}
+          />
+        </ListItem>
+      ))}
+    </List>
+  );
 
   const drawer = (
     <Box sx={{ 
       height: '100%', 
       bgcolor: 'background.default', 
       display: 'flex', 
-      flexDirection: 'column',
-      overflow: 'hidden'
+      flexDirection: 'column'
     }}>
       <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
         p: 2,
         borderBottom: 1,
         borderColor: 'divider',
-        minHeight: { xs: 56, sm: 64 },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
       }}>
-        <Typography 
-          variant="h6" 
-          component="div" 
-          noWrap
-          sx={{ 
-            maxWidth: 'calc(100% - 48px)'
-          }}
-        >
+        <Typography variant="h6" noWrap>
           LLM Analysis
         </Typography>
-        {isMobile && (
-          <IconButton 
-            onClick={handleDrawerToggle} 
-            edge="end"
-            sx={{ ml: 1 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        )}
+        <IconButton onClick={toggleTheme} color="inherit" size="small">
+          {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
       </Box>
-      
-      <Box sx={{ 
-        flex: 1, 
-        overflow: 'auto',
-        px: 1,
-        py: 1
-      }}>
-        <List>
-          {menuItems.map((item) => (
-            <ListItem 
-              button 
-              key={item.text} 
-              component={Link} 
-              to={item.path}
-              selected={location.pathname === item.path}
-              onClick={isMobile ? handleDrawerToggle : undefined}
-              sx={{
-                my: 0.5,
-                borderRadius: 2,
-                whiteSpace: 'nowrap',
-                '&.Mui-selected': {
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
-                  '& .MuiListItemIcon-root': {
-                    color: 'white',
-                  }
-                }
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-      
-      <Box sx={{ p: 1, borderTop: 1, borderColor: 'divider' }}>
-        <ListItem 
-          button 
-          onClick={() => toggleTheme()}
-          sx={{ 
-            borderRadius: 2,
-            bgcolor: 'background.paper',
-            border: 1,
-            borderColor: 'divider',
-            '&:hover': {
-              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'
-            }
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-          </ListItemIcon>
-          <ListItemText 
-            primary={theme.palette.mode === 'dark' ? "Light Mode" : "Dark Mode"} 
-            secondary="Toggle theme"
-            primaryTypographyProps={{ noWrap: true }}
-            secondaryTypographyProps={{ noWrap: true }}
-          />
-        </ListItem>
+      <Box sx={{ overflow: 'auto', flex: 1, py: 2 }}>
+        <NavigationList />
       </Box>
     </Box>
   );
 
-  const themeToggle = (
-    <IconButton 
-      onClick={toggleTheme} 
-      color="inherit"
-      sx={{ ml: 'auto' }}
-    >
-      {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-    </IconButton>
-  );
-
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
           display: { sm: 'none' },
-          bgcolor: 'background.default',
-          color: 'text.primary',
-          boxShadow: 'none',
-          borderBottom: 1,
-          borderColor: 'divider',
-          zIndex: (theme) => theme.zIndex.drawer + 2,
-          backdropFilter: 'blur(10px)',
+          bgcolor: scrolled ? 'background.default' : 'transparent',
+          boxShadow: scrolled ? 1 : 'none',
+          backdropFilter: scrolled ? 'blur(10px)' : 'none',
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -196,36 +181,28 @@ function Layout({ children, toggleTheme }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap sx={{ flex: 1 }}>
             LLM Analysis
           </Typography>
-          {themeToggle}
         </Toolbar>
       </AppBar>
 
       <Box
         component="nav"
-        sx={{ 
-          width: { sm: drawerWidth }, 
-          flexShrink: { sm: 0 }
-        }}
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
         <Drawer
           variant={isMobile ? 'temporary' : 'permanent'}
           open={mobileOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true
-          }}
+          ModalProps={{ keepMounted: true }}
           sx={{
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               boxSizing: 'border-box',
               border: 'none',
               boxShadow: theme => isMobile ? theme.shadows[8] : 'none',
-              bgcolor: 'background.default',
-              overflow: 'hidden',
-              zIndex: (theme) => theme.zIndex.drawer + 1
+              bgcolor: 'background.default'
             }
           }}
         >
@@ -237,32 +214,24 @@ function Layout({ children, toggleTheme }) {
         component="main"
         sx={{
           flexGrow: 1,
+          p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          height: '100vh',
-          overflow: 'auto',
-          position: 'relative',
-          pt: { xs: 7, sm: 2 },
-          px: { xs: 1, sm: 2, md: 3 },
-          pb: { xs: 2, sm: 3 }
+          minHeight: '100vh',
+          bgcolor: 'background.default'
         }}
       >
-        <Box sx={{ 
-          position: 'sticky',
-          top: { xs: 56, sm: 0 },
-          zIndex: (theme) => theme.zIndex.drawer - 1
-        }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </Box>
+        <Toolbar sx={{ display: { sm: 'none' } }} />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </Box>
     </Box>
   );

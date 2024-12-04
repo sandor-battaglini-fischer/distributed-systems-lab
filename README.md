@@ -2,7 +2,7 @@
 
 Lab Assignment for "Distributed Systems", Vrije Universiteit 2024
 
-### To Do
+## To Do
 
 Interface:
 
@@ -21,11 +21,18 @@ Data analysis:
 - (B) Improve plots, make sure it is consistent with what their repo had
 - (S) See what additional research/analyis we can do
 - Ideas:
-  - (S) use LLM to analyse the results from the plots (<span style="color:green;">done</span>) and:
+  - (S) ~~use LLM to analyse the results from the plots and:~~
     - give a user profile based suggestion (questionaire, what time they use llms -> which one is best)
     - use RAG to train on course material (local inference)
     - Prompt engineer based on previous knowledge
-  - ...
+  - API vs GUI version (ChatGPT/Claude) analysis (hypothesis: API more stable)
+  - (S) Geographical distribution of outages from downdetector (might be too hard to automate)
+  - (S) Predictive failure model:
+    - Time series modelling (when will failures occur)
+    - How fast will failures be resolved
+  - (S) ~~Distribution of Incident Impact Level~~ (and then generalise to a new metric, new taxonomy?)
+  - Why do the failures occur more often for some services? Company infrastructure, goals, tech stack, funding, computational resources, etc. How would we improve the service as a Distributed System?
+  - Assessment of the quality of status reporting (per service provider)
 
 General:
 

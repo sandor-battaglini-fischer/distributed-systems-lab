@@ -8,27 +8,9 @@ module.exports = function(app) {
       target: 'http://localhost:5000',
       changeOrigin: true,
       logLevel: 'debug',
-      timeout: 30000,
-      proxyTimeout: 31000,
-      onProxyReq: (proxyReq, req, res) => {
-        if (req.method === 'POST' && req.body) {
-          const bodyData = JSON.stringify(req.body);
-          proxyReq.setHeader('Content-Type', 'application/json');
-          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-          proxyReq.write(bodyData);
-        }
-      },
-      onProxyError: (err, req, res) => {
-        console.error('Proxy Error:', err);
-        res.writeHead(500, {
-          'Content-Type': 'application/json',
-        });
-        res.end(JSON.stringify({ 
-          success: false,
-          error: 'Proxy error occurred',
-          details: err.message 
-        }));
-      },
+      timeout: 60000,
+      proxyTimeout: 61000,
+      ws: false,
       onError: (err, req, res) => {
         console.error('Proxy Error:', err);
         res.writeHead(500, {
@@ -36,9 +18,25 @@ module.exports = function(app) {
         });
         res.end(JSON.stringify({ 
           success: false,
-          error: 'Proxy error occurred',
-          details: err.message 
+          error: 'Connection error occurred',
+          details: err.code === 'ECONNRESET' ? 'Server connection was reset. Please try again.' : err.message 
         }));
+      },
+      onProxyReq: (proxyReq, req, res) => {
+        proxyReq.setHeader('Connection', 'keep-alive');
+        
+        if (req.method === 'POST' && req.body) {
+          const bodyData = JSON.stringify(req.body);
+          proxyReq.setHeader('Content-Type', 'application/json');
+          proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+          proxyReq.write(bodyData);
+        }
+      },
+      onProxyRes: (proxyRes, req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Connection', 'keep-alive');
       }
     })
   );
@@ -50,8 +48,26 @@ module.exports = function(app) {
       target: 'http://localhost:5000',
       changeOrigin: true,
       logLevel: 'debug',
-      timeout: 30000,
-      proxyTimeout: 31000,
+      timeout: 60000,
+      proxyTimeout: 61000,
+      ws: false,
+      onError: (err, req, res) => {
+        console.error('Static Plot Proxy Error:', err);
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ 
+          success: false,
+          error: 'Failed to load plot',
+          details: err.message 
+        }));
+      },
+      onProxyReq: (proxyReq, req, res) => {
+        proxyReq.setHeader('Connection', 'keep-alive');
+      },
+      onProxyRes: (proxyRes, req, res) => {
+        res.setHeader('Connection', 'keep-alive');
+      }
     })
   );
 };

@@ -19,6 +19,11 @@ from scripts.analysis import (
 )
 from werkzeug.exceptions import HTTPException
 import traceback
+from werkzeug.serving import WSGIRequestHandler
+from werkzeug.middleware.proxy_fix import ProxyFix
+from scripts.analysis_modules.failure_reasons import analyze_failure_reasons
+import pandas as pd
+from routes.incidents import incidents_bp
 
 # Configure logging
 logging.basicConfig(
@@ -31,10 +36,21 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 logging.getLogger('PIL').setLevel(logging.WARNING) 
 
+# Increase timeout for WSGI server
+WSGIRequestHandler.protocol_version = "HTTP/1.1"
+
 app = Flask(__name__, static_folder='../client/build', static_url_path='')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
-app.config['HOST'] = '0.0.0.0'  
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.config.update(
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max-limit
+    SEND_FILE_MAX_AGE_DEFAULT=0,  # Disable caching for development
+    PERMANENT_SESSION_LIFETIME=1800,  # 30 minutes
+    HOST='0.0.0.0',
+    TIMEOUT=300,  # 5 minutes timeout
+    SERVER_NAME=None,  # Allow all host headers
+    PREFERRED_URL_SCHEME='http',
+    PROPAGATE_EXCEPTIONS=True,
+)
 
 # Ensure plots directory exists
 PLOTS_DIR = os.path.join(os.path.dirname(__file__), 'static', 'plots')
@@ -47,6 +63,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # scripts_dir = "scripts"
 # Update to:
 scripts_dir = os.path.join(BASE_DIR, "scripts")
+
+app.register_blueprint(incidents_bp)
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
@@ -183,7 +201,7 @@ def handle_exception(e):
         'details': traceback.format_exc()
     }), 500
 
-# Add these routes for serving the React app
+# Serving React
 @app.route('/')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')
@@ -218,5 +236,54 @@ def serve_plot(filename):
         logger.error(f"Error serving plot {filename}: {str(e)}")
         return jsonify({'error': 'Plot not found'}), 404
 
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    response = app.make_default_options_response()
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Connection'] = 'keep-alive'
+    return response
+
+@app.route('/api/analyze-failures', methods=['POST'])
+def analyze_failures():
+    try:
+        data = request.get_json()
+        query = data.get('query')
+        history = data.get('history', [])
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': 'No query provided'
+            }), 400
+
+        # Load the incident data
+        df = pd.read_csv('static/data/incident_stages_all.csv')
+        
+        # Analyze failures based on the query and history
+        analysis = analyze_failure_reasons(df, query=query, history=history)
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis
+        })
+        
+    except Exception as e:
+        logger.exception('Error analyzing failures')
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        debug=True,
+        threaded=True,
+        use_reloader=True,
+        use_debugger=True,
+        use_evalex=True,
+        passthrough_errors=False
+    )

@@ -105,7 +105,35 @@ This project is a web application built using React for the frontend and Flask f
 
    This will start the React development server on `http://localhost:3000`.
 
-## Using the AI Plot Analysis Feature
+## Features
+
+### Dashboard
+
+The main dashboard provides visualization and analysis of LLM service incidents through various plots and metrics.
+
+### Failure Analysis Chat
+
+An interactive chat interface that allows users to analyze incident patterns and get AI-powered insights about service reliability. The chat interface:
+
+- Maintains conversation context for follow-up questions
+- Provides markdown-formatted responses
+- Supports natural language queries about:
+  - Common failure patterns
+  - Service reliability trends
+  - Impact analysis
+  - Recovery time patterns
+  - Root cause categorization
+
+Example queries:
+
+- "What are the most common types of failures?"
+- "Which services had the longest downtime?"
+- "Analyze the pattern of authentication failures"
+- "Tell me more about the impact levels of incidents"
+
+The analysis is powered by GPT-4o-mini and uses the historical incident data to provide data-backed insights.
+
+### AI Plot Analysis
 
 The application includes an AI-powered plot analysis feature that can analyze visualizations and provide insights. To use this feature:
 
@@ -130,6 +158,51 @@ The application includes an AI-powered plot analysis feature that can analyze vi
    - If you see "Please use production server" message, ensure you're running the server using start.sh
    - Verify your API key is correctly set in the .env file
    - Check the server logs for any API-related errors
+
+## Data Collection and Updates
+
+The application includes scripts to collect and update incident data from various LLM providers. There are two main data collection scripts:
+
+1. **Regular Data Updates** - Collects recent incidents:
+
+   ```bash
+   cd server/scripts
+   python run_incident_scrapers.py
+   ```
+
+   This script:
+   - Collects new incidents from OpenAI, Anthropic, Character.AI, and StabilityAI
+   - Updates the existing incident database with new data
+   - Runs automatically via cron job in production
+   - Runs both the StabilityAI.py file and the incident_scraper_oac.py file
+
+2. **Historical Data Collection** - One-time collection of all historical incidents:
+
+   ```bash
+   cd server/scripts/data_gen_modules
+   python incident_scraper_oac_historical.py
+   ```
+
+   This script:
+   - Collects all available historical incidents
+   - Creates a complete historical database
+   - Should be run only once when setting up a new instance
+
+### Troubleshooting Data Collection
+
+If you encounter issues during data collection:
+
+1. **Check the Logs:**
+   - View server/logs/incident_scrapers.log for detailed error messages
+   - Common issues include network timeouts and parsing errors
+
+2. **Browser Issues:**
+   - If you see WebDriver errors, ensure Chrome is properly installed
+   - Try running without headless mode for debugging by removing the '--headless=new' option
+
+3. **Data Validation Failures:**
+   - Check that the source websites haven't changed their structure
+   - Verify network connectivity to all provider status pages
 
 ### Learn More
 

@@ -4,11 +4,13 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { lightTheme, darkTheme } from './theme';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
+import Dashboard from './pages/Dashboard';
 import About from './pages/About';
 import './App.css';
 import { AnalysisProvider } from './context/AnalysisContext';
 import ConnectionStatus from './components/ConnectionStatus';
+import FailureAnalysis from './pages/FailureAnalysis';
+import DataTable from './pages/DataTable';
 
 function App() {
   const [mode, setMode] = useState('light');
@@ -30,7 +32,9 @@ function App() {
           <Layout toggleTheme={toggleTheme}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/failure-analysis" element={<FailureAnalysis />} />
               <Route path="/about" element={<About />} />
+              <Route path="/data" element={<DataTable />} />
             </Routes>
           </Layout>
         </Router>
