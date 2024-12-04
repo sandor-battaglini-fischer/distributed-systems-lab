@@ -36,7 +36,7 @@ def analyze_temporal_distribution(start_date, end_date, selected_services):
         service_mapping = {
             'OpenAI:API': 'API',
             'OpenAI:ChatGPT': 'ChatGPT',
-            'OpenAI:Labs': 'Labs',
+            'OpenAI:DALL-E': 'DALL-E',
             'OpenAI:Playground': 'Playground',
             'Anthropic:API': 'api.anthropic.com',
             'Anthropic:Claude': 'claude.ai',
@@ -56,7 +56,6 @@ def analyze_temporal_distribution(start_date, end_date, selected_services):
 
         # Create figure with subplots
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 12))
-
         # Plot 1: Monthly trend
         for service in services_to_analyze:
             service_df = df[df[service] == 1].copy()
