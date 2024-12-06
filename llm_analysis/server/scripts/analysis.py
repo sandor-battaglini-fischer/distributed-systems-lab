@@ -35,11 +35,19 @@ print(f"API Key value: {os.getenv('OPENAI_API_KEY')[:5]}..." if os.getenv('OPENA
 try:
     client = OpenAI(
         api_key=os.getenv('OPENAI_API_KEY'),
-        base_url="https://api.openai.com/v1"
+        base_url="https://api.openai.com/v1",
+        http_client=None,  # Explicitly set to None to avoid proxy issues
+        max_retries=2,
+        timeout=30.0
     )
 except Exception as e:
     print(f"Warning: Failed to initialize OpenAI client: {e}")
-    client = None
+    try:
+        # Fallback to minimal configuration
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+    except Exception as e2:
+        print(f"Warning: Fallback initialization also failed: {e2}")
+        client = None
 
 PLOTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'plots')
 
