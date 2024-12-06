@@ -17,7 +17,7 @@ def analyze_mtbf_boxplot(start_date, end_date, selected_services):
         df = load_and_prepare_data(
             start_date, 
             end_date,
-            timestamp_columns=['investigating_timestamp', 'start_timestamp']
+            timestamp_columns=['investigating_timestamp', 'start_timestamp', 'close_timestamp']
         )
         
         # Get services to analyze

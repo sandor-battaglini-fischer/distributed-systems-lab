@@ -20,7 +20,7 @@ def analyze_resolution_activities(start_date, end_date, selected_services):
             timestamp_columns=[
                 'investigating_timestamp', 'identified_timestamp',
                 'monitoring_timestamp', 'resolved_timestamp',
-                'postmortem_timestamp', 'start_timestamp'
+                'postmortem_timestamp', 'start_timestamp', 'close_timestamp'
             ]
         )
         

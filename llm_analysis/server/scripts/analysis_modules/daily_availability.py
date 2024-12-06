@@ -19,7 +19,7 @@ def analyze_daily_availability(start_date, end_date, selected_services):
             end_date,
             timestamp_columns=[
                 'investigating_timestamp', 'resolved_timestamp'
-            ]
+            ] + ['start_timestamp', 'close_timestamp']
         )
         
         # Get services to analyze

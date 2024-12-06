@@ -22,7 +22,7 @@ def analyze_monthly_overview(start_date, end_date, selected_services):
             end_date,
             timestamp_columns=[f'{status}_timestamp' for status in 
                              ['investigating', 'identified', 'monitoring', 
-                              'resolved', 'postmortem']]
+                              'resolved', 'postmortem']] + ['start_timestamp', 'close_timestamp']
         )
         
         # Get services to analyze

@@ -30,7 +30,7 @@ This project is a web application built using React for the frontend and Flask f
    Navigate to the `server` directory and create a virtual environment:
 
    ```bash
-   cd server
+   cd llm_analysis
    python -m venv venv
    ```
 
