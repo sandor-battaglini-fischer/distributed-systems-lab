@@ -67,14 +67,12 @@ def get_predictive_analysis():
         # Initialize the model
         model = FailurePredictionModel()
         
-        # Load and process data
         csv_path = os.path.join('static', 'data', 'incident_stages_all.csv')
         df = pd.read_csv(csv_path)
         
-        # Train the model
+
         daily_incidents, history = model.train_models(df)
         
-        # Get recent incidents for lookback
         lookback_data = model.get_recent_incidents(df, days=model.lookback_days)
         
         # Make predictions for next 14 days

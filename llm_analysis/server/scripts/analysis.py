@@ -22,9 +22,24 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import io
 
-load_dotenv()
+# Get the absolute path to the .env file
+ENV_PATH = os.path.join(os.path.dirname(__file__), '.env')
+print(f"Looking for .env at: {ENV_PATH}")
 
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Load environment variables from the correct location
+load_dotenv(ENV_PATH)
+
+print(f"API Key available: {'OPENAI_API_KEY' in os.environ}")
+print(f"API Key value: {os.getenv('OPENAI_API_KEY')[:5]}..." if os.getenv('OPENAI_API_KEY') else "No API key found")
+
+try:
+    client = OpenAI(
+        api_key=os.getenv('OPENAI_API_KEY'),
+        base_url="https://api.openai.com/v1"
+    )
+except Exception as e:
+    print(f"Warning: Failed to initialize OpenAI client: {e}")
+    client = None
 
 PLOTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'plots')
 
@@ -372,6 +387,13 @@ def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services
 
 def analyze_plot(image_base64, plot_type=None):
     """Analyze plot using GPT-4o-mini with plot-specific prompts"""
+    if client is None:
+        return {
+            "success": False,
+            "analysis": "AI analysis currently unavailable. Please try again later.",
+            "error": "OpenAI client not initialized"
+        }
+        
     try:
         prompt = get_plot_specific_prompt(plot_type) if plot_type else "Analyze this plot and identify significant patterns."
         
