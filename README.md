@@ -6,15 +6,16 @@ Lab Assignment for "Distributed Systems", Vrije Universiteit 2024
 
 Interface:
 
-- (S) Improve mobile view, color palette, components
-- (S) Add JS plotting framework for interactive plots w/ python/matplotlib download
+- (S) ~~Improve mobile view, color palette, components~~
+- (S) ~~Add JS plotting framework for interactive plots w/ python/matplotlib download~~
 
 Data collection:
 
-- (N) Integrate Stability AI collection with the rest (same CSV)
+- (N) ~~Integrate Stability AI collection with the rest (same CSV)~~
 - (S) Configure a Cronjob to run in the background
-- Check if Google AI has usage data, if not maybe third party data collection option
-- If we have time: other services (?)
+- ~~Check if Google AI has usage data, if not maybe third party data collection option~~
+- ~~If we have time: other services (?)~~
+- Outages StabilityAI (N) and rest (S)
 
 Data analysis:
 
@@ -26,8 +27,8 @@ Data analysis:
     - use RAG to train on course material (local inference)
     - Prompt engineer based on previous knowledge
   - API vs GUI version (ChatGPT/Claude) analysis (hypothesis: API more stable)
-  - (S) Geographical distribution of outages from downdetector (might be too hard to automate)
-  - (S) Predictive failure model:
+  - (S) Geographical distribution of outages from downdetector (might be too hard to automate) - Explain
+  - (B) Predictive failure model:
     - Time series modelling (when will failures occur)
     - How fast will failures be resolved
   - (S) ~~Distribution of Incident Impact Level~~ (and then generalise to a new metric, new taxonomy?)
@@ -42,3 +43,5 @@ General:
   - How do LLM services balance workload/scheduling
   - What about consistency handling?
 - Start writing the report and PPT (?)
+
+- (S) labs to DALL-E
