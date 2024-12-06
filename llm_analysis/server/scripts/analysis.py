@@ -32,22 +32,40 @@ load_dotenv(ENV_PATH)
 print(f"API Key available: {'OPENAI_API_KEY' in os.environ}")
 print(f"API Key value: {os.getenv('OPENAI_API_KEY')[:5]}..." if os.getenv('OPENAI_API_KEY') else "No API key found")
 
+# Clear any existing proxy settings that might interfere
+if 'http_proxy' in os.environ:
+    del os.environ['http_proxy']
+if 'https_proxy' in os.environ:
+    del os.environ['https_proxy']
+if 'HTTP_PROXY' in os.environ:
+    del os.environ['HTTP_PROXY']
+if 'HTTPS_PROXY' in os.environ:
+    del os.environ['HTTPS_PROXY']
+
 try:
+    # First attempt: Full configuration
     client = OpenAI(
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url="https://api.openai.com/v1",
-        http_client=None,  # Explicitly set to None to avoid proxy issues
+        http_client=None,
         max_retries=2,
         timeout=30.0
     )
 except Exception as e:
     print(f"Warning: Failed to initialize OpenAI client: {e}")
     try:
-        # Fallback to minimal configuration
+        # Second attempt: Minimal configuration
         client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
     except Exception as e2:
-        print(f"Warning: Fallback initialization also failed: {e2}")
-        client = None
+        print(f"Warning: Second attempt failed: {e2}")
+        try:
+            # Third attempt: Legacy initialization
+            import openai
+            openai.api_key = os.getenv('OPENAI_API_KEY')
+            client = openai
+        except Exception as e3:
+            print(f"Warning: All initialization attempts failed: {e3}")
+            client = None
 
 PLOTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'plots')
 
