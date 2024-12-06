@@ -45,3 +45,4 @@ General:
 - Start writing the report and PPT (?)
 
 - (S) labs to DALL-E
+- (S) ASK Outage is Incident? Can cut down csv? Mark in CSV table?
