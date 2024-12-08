@@ -38,14 +38,13 @@ def get_service_mapping_outage():
     return {
         'OpenAI:API': 'api',
         'OpenAI:ChatGPT': 'chatgpt',
-        'OpenAI:DALL-E': 'dall-e',
+        'OpenAI:DALL-E': 'labs',
         'OpenAI:Playground': 'playground',
-        'OpenAI:Labs': 'labs',
         'Anthropic:API': 'api.anthropic.com',
         'Anthropic:Claude': 'claude.ai',
         'Anthropic:Console': 'console.anthropic.com',
         'Character.AI:Character.AI': 'character.ai',
-        'StabilityAI:StabilityAI': 'stabilityai',
+        'StabilityAI:StabilityAI': 'StabilityAI',
     }
 
 

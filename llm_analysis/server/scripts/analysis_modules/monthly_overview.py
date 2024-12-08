@@ -35,7 +35,8 @@ def analyze_monthly_overview(start_date, end_date, selected_services):
         provider_services = {
             'OpenAI': [],
             'Anthropic': [],
-            'Character.AI': []
+            'Character.AI': [],
+            'StabilityAI': []
         }
 
         service_mapping = get_service_mapping()
@@ -51,7 +52,8 @@ def analyze_monthly_overview(start_date, end_date, selected_services):
         provider_colors = {
             'OpenAI': 'Blues',
             'Anthropic': 'Oranges',
-            'Character.AI': 'Greens'
+            'Character.AI': 'Greens',
+            'StabilityAI': 'Reds'
         }
 
         for idx, (provider, services) in enumerate(provider_services.items()):

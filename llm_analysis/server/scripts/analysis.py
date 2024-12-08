@@ -5,14 +5,17 @@ import uuid
 from datetime import datetime
 import pandas as pd
 from .analysis_modules.monthly_overview import analyze_monthly_overview
-from .analysis_modules.failure_recovery import analyze_failure_recovery
+from .analysis_modules.daily_overview import analyze_daily_overview
 from .analysis_modules.status_combinations import analyze_status_combinations
 from .analysis_modules.mttr_distribution import analyze_mttr_distribution
 from .analysis_modules.mtbf_distribution import analyze_mtbf_distribution
 from .analysis_modules.resolution_activities import analyze_resolution_activities
-from .analysis_modules.temporal_distribution import analyze_temporal_distribution
 from .analysis_modules.daily_availability import analyze_daily_availability
-from .analysis_modules.cooccurrence_matrix import analyze_cooccurrence_matrix
+from .analysis_modules.cooccurrence_matrix import analyze_outage_cooccurrence_matrix
+from .analysis_modules.auto_correlations import analyze_autocorrelation
+from .analysis_modules.incident_outage import timeline_incident_outage
+from .analysis_modules.coocurrence_probability import analyze_cooccurrence_probability
+from .analysis_modules.service_incidents import analyze_service_incidents
 from .analysis_modules.mttr_boxplot import analyze_mttr_boxplot
 from .analysis_modules.mtbf_boxplot import analyze_mtbf_boxplot
 from .analysis_modules.mttr_provider import analyze_mttr_provider
@@ -88,18 +91,56 @@ def generate_monthly_overview(start_date, end_date, services):
     except Exception as e:
         print(f"Error generating monthly overview: {e}")
         return None
-
-def generate_failure_recovery(start_date, end_date, services):
-    """Generate failure recovery model analysis"""
+    
+def generate_daily_overview(start_date, end_date, services):
+    """Generate daily overview of incidents"""
     try:
         cleanup_old_plots()
-        fig = analyze_failure_recovery(start_date, end_date, services)
+        fig = analyze_daily_overview(start_date, end_date, services)
         if fig:
-            return save_plot(fig, 'failure_recovery', start_date, end_date, services)
+            return save_plot(fig, 'daily_overview', start_date, end_date, services)
         return None
     except Exception as e:
-        print(f"Error generating failure recovery: {e}")
+        print(f"Error generating daily overview: {e}")
         return None
+    
+def generate_cooccurrence_probability(start_date, end_date, services):
+    """Generate co-occurrence probability analysis"""
+    try:
+        cleanup_old_plots()
+        fig = analyze_cooccurrence_probability(start_date, end_date, services)
+        if fig:
+            return save_plot(fig, 'cooccurrence_probability', start_date, end_date, services)
+        return None
+    except Exception as e:
+        print(f"Error generating co-occurrence probability: {e}")
+        return None
+    
+def generate_service_incidents(start_date, end_date, services):
+    """Generate service incidents analysis"""
+    try:
+        cleanup_old_plots()
+        fig = analyze_service_incidents(start_date, end_date, services)
+        if fig:
+            return save_plot(fig, 'service_incidents', start_date, end_date, services)
+        return None
+    except Exception as e:
+        print(f"Error generating service incidents: {e}")
+        return None
+    
+    
+def generate_incident_outage(start_date, end_date, services):
+    """Generate incident outage timeline analysis"""
+    try:
+        cleanup_old_plots()
+        fig = timeline_incident_outage(start_date, end_date, services)
+        if fig:
+            return save_plot(fig, 'incident_outage', start_date, end_date, services)
+        return None
+    except Exception as e:
+        print(f"Error generating incident outage: {e}")
+        return None
+    
 
 def generate_status_combinations(start_date, end_date, services):
     """Generate status combinations analysis"""
@@ -161,23 +202,18 @@ def generate_mtbf_provider(start_date, end_date, services):
 
     return save_plot(fig, 'figure8.png', start_date, end_date, services)
 
-def generate_temporal_distribution(start_date, end_date, services):
-    """Generate temporal distribution analysis"""
-    try:
-        cleanup_old_plots()
-        fig = analyze_temporal_distribution(start_date, end_date, services)
-        if fig:
-            return save_plot(fig, 'temporal_distribution', start_date, end_date, services)
-        return None
-    except Exception as e:
-        print(f"Error generating temporal distribution: {e}")
-        return None
 
 def generate_autocorrelations(start_date, end_date, services):
     """Generate autocorrelations analysis"""
-    fig, ax = plt.subplots(figsize=(8, 6))
-
-    return save_plot(fig, 'figure10.png', start_date, end_date, services)
+    try:
+        cleanup_old_plots()
+        fig = analyze_autocorrelation(start_date, end_date, services)
+        if fig:
+            return save_plot(fig, 'autocorrelations', start_date, end_date, services)
+        return None
+    except Exception as e:
+        print(f"Error generating autocorrelations: {e}")
+        return None
 
 def generate_daily_availability(start_date, end_date, services):
     """Generate daily availability analysis"""
@@ -195,7 +231,7 @@ def generate_cooccurrence_matrix(start_date, end_date, services):
     """Generate co-occurrence matrix analysis"""
     try:
         cleanup_old_plots()
-        fig = analyze_cooccurrence_matrix(start_date, end_date, services)
+        fig = analyze_outage_cooccurrence_matrix(start_date, end_date, services)
         if fig:
             return save_plot(fig, 'cooccurrence_matrix', start_date, end_date, services)
         return None
@@ -213,60 +249,80 @@ def generate_all_plots(start_date, end_date, services):
         if monthly_overview_path:
             plots['figure1'] = monthly_overview_path
 
+        # Daily Overview
+        daily_overview_path = generate_daily_overview(start_date, end_date, services)
+        if daily_overview_path:
+            plots['figure2'] = daily_overview_path
+
         # MTTR Analysis
         mttr_distribution_path = generate_mttr_distribution(start_date, end_date, services)
         if mttr_distribution_path:
-            plots['figure2'] = mttr_distribution_path
+            plots['figure3'] = mttr_distribution_path
 
         # MTTR by Provider
         mttr_provider_path = generate_mttr_provider(start_date, end_date, services)
         if mttr_provider_path:
-            plots['figure3'] = mttr_provider_path
+            plots['figure4'] = mttr_provider_path
 
         # MTTR Distribution (Boxplot)
         mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, services)
         if mttr_boxplot_path:
-            plots['figure4'] = mttr_boxplot_path
+            plots['figure5'] = mttr_boxplot_path
 
         # MTBF Analysis
         mtbf_distribution_path = generate_mtbf_distribution(start_date, end_date, services)
         if mtbf_distribution_path:
-            plots['figure5'] = mtbf_distribution_path
+            plots['figure6'] = mtbf_distribution_path
 
         # MTBF by Provider
         mtbf_provider_path = generate_mtbf_provider(start_date, end_date, services)
         if mtbf_provider_path:
-            plots['figure6'] = mtbf_provider_path
+            plots['figure7'] = mtbf_provider_path
 
         # MTBF Distribution (Boxplot)
         mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, services)
         if mtbf_boxplot_path:
-            plots['figure7'] = mtbf_boxplot_path
+            plots['figure8'] = mtbf_boxplot_path
 
         # Resolution Activities
         resolution_activities_path = generate_resolution_activities(start_date, end_date, services)
         if resolution_activities_path:
-            plots['figure8'] = resolution_activities_path
+            plots['figure9'] = resolution_activities_path
 
         # Status Combinations
         status_combinations_path = generate_status_combinations(start_date, end_date, services)
         if status_combinations_path:
-            plots['figure9'] = status_combinations_path
+            plots['figure10'] = status_combinations_path
 
         # Service Availability
         daily_availability_path = generate_daily_availability(start_date, end_date, services)
         if daily_availability_path:
-            plots['figure10'] = daily_availability_path
-
-        # Temporal Patterns
-        temporal_distribution_path = generate_temporal_distribution(start_date, end_date, services)
-        if temporal_distribution_path:
-            plots['figure11'] = temporal_distribution_path
+            plots['figure11'] = daily_availability_path
 
         # Service Co-occurrence
         cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
         if cooccurrence_matrix_path:
             plots['figure12'] = cooccurrence_matrix_path
+
+        # Co-occurrence Probability
+        cooccurrence_probability_path = generate_cooccurrence_probability(start_date, end_date, services)
+        if cooccurrence_probability_path:
+            plots['figure13'] = cooccurrence_probability_path
+
+        # Service Incidents
+        service_incidents_path = generate_service_incidents(start_date, end_date, services)
+        if service_incidents_path:
+            plots['figure14'] = service_incidents_path
+
+        # Incident Outage Timeline
+        incident_outage_path = generate_incident_outage(start_date, end_date, services)
+        if incident_outage_path:
+            plots['figure15'] = incident_outage_path
+
+        # Autocorrelations
+        autocorrelations_path = generate_autocorrelations(start_date, end_date, services)
+        if autocorrelations_path:
+            plots['figure16'] = autocorrelations_path
 
         return plots
 
@@ -364,7 +420,11 @@ def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services
         'figure9': f"Analyze these status combinations{date_context}{service_context}. Highlight unusual transition patterns or process inefficiencies.",
         'figure10': f"Review this service availability plot{date_context}{service_context}. Identify SLA breaches and availability trends.",
         'figure11': f"Analyze these temporal patterns{date_context}{service_context}. Identify peak incident times and monthly trends.",
-        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Identify significant service dependencies or correlations."
+        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Identify significant service dependencies or correlations.",
+        'figure13': f"Analyze this incident outage timeline{date_context}{service_context}. Identify outage patterns and trends over time.",
+        'figure14': f"Review this daily overview plot{date_context}{service_context}. Identify daily trends and patterns in incident activity.",
+        'figure15': f"Analyze this co-occurrence probability plot{date_context}{service_context}. Identify significant service dependencies or correlations.",
+        'figure16': f"Analyze these service incidents{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics."
     }
     
     base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns."

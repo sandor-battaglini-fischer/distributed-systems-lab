@@ -8,9 +8,19 @@ from .utils import (
     setup_plotting_style
 )
 
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from .utils import (
+    load_and_prepare_data,
+    get_services_to_analyze,
+    setup_plotting_style
+)
+
 def analyze_status_combinations(start_date, end_date, selected_services):
     """
-    Analyze and visualize status combinations patterns
+    Analyze failure recovery patterns and generate stacked bar plot
     """
     try:
         # Load and prepare data
@@ -57,18 +67,28 @@ def analyze_status_combinations(start_date, end_date, selected_services):
             values = [row[i] for row in data]
             ax.bar(services_to_analyze, values, bottom=bottom, 
                   label=f"Status {i+1}", color=colors[i])
+            
+            # Add percentage labels
+            for j, v in enumerate(values):
+                if v > 0:
+                    ax.text(j, bottom[j] + v/2, f'{v:.1%}', 
+                           ha='center', va='center', color='white',
+                           fontweight='bold')
             bottom += values
 
-        ax.set_xlabel('Service', fontsize=12)
-        ax.set_ylabel('Percentage of Incidents', fontsize=12)
-        ax.set_title('Status Combination Patterns by Service', fontsize=14, pad=20)
-        ax.legend(title='Status Combinations', bbox_to_anchor=(1.05, 1.0))
+        ax.set_xlabel('Service', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Percentage', fontsize=12, fontweight='bold')
+        ax.set_title('Status Combinations by Service', fontsize=14, pad=20, fontweight='bold')
+        ax.legend(title='Status Combinations', bbox_to_anchor=(1.05, 1.0), loc='upper left')
         
+        # Rotate x-axis labels for better readability
         plt.xticks(rotation=45, ha='right')
+        
+        # Adjust layout to prevent label cutoff
         plt.tight_layout()
 
         return fig
 
     except Exception as e:
-        print(f"Error in status combinations analysis: {str(e)}")
-        raise 
+        print(f"Error in failure recovery analysis: {str(e)}")
+        raise

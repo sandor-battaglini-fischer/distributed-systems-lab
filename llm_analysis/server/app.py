@@ -2,20 +2,23 @@ from flask import Flask, jsonify, request, send_file, send_from_directory
 import os
 import logging
 from scripts.analysis import (
-    generate_failure_recovery,
     generate_monthly_overview,
+    generate_daily_overview,
     generate_status_combinations,
     cleanup_old_plots,
     generate_mttr_distribution,
     generate_mtbf_distribution,
     generate_resolution_activities,
-    generate_temporal_distribution,
     generate_daily_availability,
     generate_cooccurrence_matrix,
     generate_mttr_boxplot,
+    generate_autocorrelations,
+    generate_incident_outage,
+    generate_service_incidents,
+    generate_cooccurrence_probability,
     generate_mtbf_boxplot,
     generate_mttr_provider,
-    generate_mtbf_provider
+    generate_mtbf_provider,
 )
 from werkzeug.exceptions import HTTPException
 import traceback
@@ -83,70 +86,89 @@ def analyze():
             logger.error('Missing required fields')
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
-
         plots = {}
         try:
             cleanup_old_plots()
 
-            # Days of Week Distribution (figure1)
-            days_distribution_path = generate_monthly_overview(start_date, end_date, selected_services)
-            if days_distribution_path:
-                plots['figure1'] = days_distribution_path
+            # Monthly Overview (figure1)
+            monthly_overview_path = generate_monthly_overview(start_date, end_date, selected_services)
+            if monthly_overview_path:
+                plots['figure1'] = monthly_overview_path
+
+            # Daily Overview (figure2)
+            daily_overview_path = generate_daily_overview(start_date, end_date, selected_services)
+            if daily_overview_path:
+                plots['figure2'] = daily_overview_path
             
-            # MTTR Analysis (figure2)
+            # MTTR Analysis (figure3)
             mttr_analysis_path = generate_mttr_distribution(start_date, end_date, selected_services)
             if mttr_analysis_path:
-                plots['figure2'] = mttr_analysis_path
+                plots['figure3'] = mttr_analysis_path
             
-            # MTTR by Provider (figure3)
+            # MTTR by Provider (figure4)
             mttr_provider_path = generate_mttr_provider(start_date, end_date, selected_services)
             if mttr_provider_path:
-                plots['figure3'] = mttr_provider_path
+                plots['figure4'] = mttr_provider_path
 
-            # MTTR Distribution (figure4)
+            # MTTR Distribution (figure5)
             mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, selected_services)
             if mttr_boxplot_path:
-                plots['figure4'] = mttr_boxplot_path
+                plots['figure5'] = mttr_boxplot_path
 
-            # MTBF Analysis (figure5)
+            # MTBF Analysis (figure6)
             mtbf_analysis_path = generate_mtbf_distribution(start_date, end_date, selected_services)
             if mtbf_analysis_path:
-                plots['figure5'] = mtbf_analysis_path
+                plots['figure6'] = mtbf_analysis_path
 
-            # MTBF by Provider (figure6)
+            # MTBF by Provider (figure7)
             mtbf_provider_path = generate_mtbf_provider(start_date, end_date, selected_services)
             if mtbf_provider_path:
-                plots['figure6'] = mtbf_provider_path
+                plots['figure7'] = mtbf_provider_path
 
-            # MTBF Distribution (figure7)
+            # MTBF Distribution (figure8)
             mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, selected_services)
             if mtbf_boxplot_path:
-                plots['figure7'] = mtbf_boxplot_path
+                plots['figure8'] = mtbf_boxplot_path
 
-            # Resolution Activities (figure8)
+            # Resolution Activities (figure9)
             resolution_activities_path = generate_resolution_activities(start_date, end_date, selected_services)
             if resolution_activities_path:
-                plots['figure8'] = resolution_activities_path
+                plots['figure9'] = resolution_activities_path
 
-            # Status Combinations (figure9)
+            # Status Combinations (figure10)
             status_combinations_path = generate_status_combinations(start_date, end_date, selected_services)
             if status_combinations_path:
-                plots['figure9'] = status_combinations_path
+                plots['figure10'] = status_combinations_path
 
-            # Service Availability (figure10)
+            # Service Availability (figure11)
             daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
             if daily_availability_path:
-                plots['figure10'] = daily_availability_path
-
-            # Temporal Patterns (figure11)
-            temporal_patterns_path = generate_temporal_distribution(start_date, end_date, selected_services)
-            if temporal_patterns_path:
-                plots['figure11'] = temporal_patterns_path
+                plots['figure11'] = daily_availability_path
 
             # Service Co-occurrence (figure12)
             cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, selected_services)
             if cooccurrence_matrix_path:
                 plots['figure12'] = cooccurrence_matrix_path
+
+            # Service Co-occurrence Probability (figure13)
+            cooccurrence_probability_path = generate_cooccurrence_probability(start_date, end_date, selected_services)
+            if cooccurrence_probability_path:
+                plots['figure13'] = cooccurrence_probability_path
+
+            # Service Incidents (figure14)
+            service_incidents_path = generate_service_incidents(start_date, end_date, selected_services)
+            if service_incidents_path:
+                plots['figure14'] = service_incidents_path
+
+            # Incident Outage Timeline (figure15)
+            incident_outage_path = generate_incident_outage(start_date, end_date, selected_services)
+            if incident_outage_path:
+                plots['figure15'] = incident_outage_path
+
+            # Autocorrelations (figure16)
+            autocorrelations_path = generate_autocorrelations(start_date, end_date, selected_services)
+            if autocorrelations_path:
+                plots['figure16'] = autocorrelations_path
 
             # Verify files exist
             for plot_name, plot_path in plots.items():

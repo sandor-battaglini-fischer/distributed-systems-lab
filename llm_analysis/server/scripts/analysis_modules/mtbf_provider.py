@@ -24,7 +24,7 @@ def analyze_mtbf_provider(start_date, end_date, selected_services):
         setup_plotting_style()
 
         # Group by provider
-        provider_list = ['openai', 'anthropic', 'character']
+        provider_list = ['openai', 'anthropic', 'character', 'StabilityAI']
         dfs_provider = {}
         dfs_provider_mtbf = {}
 
