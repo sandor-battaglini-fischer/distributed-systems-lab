@@ -27,8 +27,8 @@ python -m gunicorn --bind 0.0.0.0:5000 wsgi:app \
     --timeout 120 \
     --access-logfile - \
     --error-logfile - \
-    # --reload \
-    # --daemon \
+    --reload \
+    --daemon \
     --pid "$PID_FILE"
 
 echo "Server started. PID file: $PID_FILE"

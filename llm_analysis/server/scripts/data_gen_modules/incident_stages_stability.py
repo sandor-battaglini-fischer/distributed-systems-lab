@@ -160,14 +160,43 @@ def identify_services(description):
             service_flags[service] = 1
     return service_flags
 
+def parse_service_string(service_str):
+    """Parse the service string from StabilityAI scraper into service flags."""
+    service_flags = {
+        "REST API": 0,
+        "gRPC API": 0,
+        "Stable Assistant": 0
+    }
+    
+    if pd.isna(service_str) or not isinstance(service_str, str):
+        return service_flags
+        
+    # Remove any duplicate prefixes
+    service_str = service_str.replace("This incident affected: This incident affected: ", "This incident affected: ")
+    
+    # Remove the prefix if it exists
+    if "This incident affected: " in service_str:
+        service_str = service_str.replace("This incident affected: ", "")
+    
+    # Split services if multiple are listed
+    services = service_str.split(" and ")
+    
+    for service in services:
+        service = service.strip()
+        if service in service_flags:
+            service_flags[service] = 1
+            
+    return service_flags
+
 def process_file(file_path):
     raw_data = pd.read_csv(file_path)
     processed_data = []
 
     column_order = [
         "incident_id", "Incident_Title", "incident_impact_level", "Incident_color", "provider",
-        "Playground", "API", "Labs", "ChatGPT", "api.anthropic.com", "claude.ai", "console.anthropic.com",
-        "Character.AI", "StabilityAI", "investigating_flag", "investigating_timestamp", "investigating_description",
+        "Playground", "API", "DALL-E", "ChatGPT", "api.anthropic.com", "claude.ai", 
+        "console.anthropic.com", "Character.AI", "REST API", "gRPC API", "Stable Assistant",
+        "investigating_flag", "investigating_timestamp", "investigating_description",
         "identified_flag", "identified_timestamp", "identified_description", "monitoring_flag",
         "monitoring_timestamp", "monitoring_description", "resolved_flag", "resolved_timestamp",
         "resolved_description", "postmortem_flag", "postmortem_timestamp", "postmortem_description",
@@ -182,23 +211,61 @@ def process_file(file_path):
         provider = "StabilityAI"
         description = row.get("Incident_Title", "") + " " + row.get("Updates", "")
         
+        # Initialize service flags
         service_flags = {
             "Playground": 0,
             "API": 0,
-            "Labs": 0,
+            "DALL-E": 0,
             "ChatGPT": 0,
             "api.anthropic.com": 0,
             "claude.ai": 0,
             "console.anthropic.com": 0,
             "Character.AI": 0,
-            "StabilityAI": 1
+            "REST API": 0,
+            "gRPC API": 0,
+            "Stable Assistant": 0
         }
 
+        # Clean and parse updates
         updates_field = row.get("Updates", "")
         if isinstance(updates_field, str):
             updates_field = clean_updates_str(updates_field)
+            try:
+                updates_list = json.loads(updates_field)
+                
+                # Process services first
+                text_to_check = row.get("Incident_Title", "").lower()
+                for update in updates_list:
+                    text_to_check += f" {update.get('Update_Title', '')} {update.get('Update_Body', '')}".lower()
 
-        updates, start_timestamp, identified_timestamp, close_timestamp = parse_updates(updates_field)
+                # Parse the Service field
+                if "Service" in row:
+                    stability_services = parse_service_string(row["Service"])
+                    service_flags.update(stability_services)
+
+                # Check services in Updates if none were found
+                if all(v == 0 for k, v in service_flags.items() if k in ["REST API", "gRPC API", "Stable Assistant"]):
+                    if "rest" in text_to_check:
+                        service_flags["REST API"] = 1
+                    if "grpc" in text_to_check:
+                        service_flags["gRPC API"] = 1
+                    if any(term in text_to_check for term in ["stable assistant", "assistant", "stable-assistant"]):
+                        service_flags["Stable Assistant"] = 1
+                    
+                    # If still no specific service found but API-related terms exist
+                    if all(v == 0 for k, v in service_flags.items() if k in ["REST API", "gRPC API", "Stable Assistant"]):
+                        if any(term in text_to_check for term in ["api", "latency", "error", "endpoint"]):
+                            service_flags["REST API"] = 1
+                            service_flags["gRPC API"] = 1
+
+                # Now parse updates for timestamps
+                updates, start_timestamp, identified_timestamp, close_timestamp = parse_updates(json.dumps(updates_list))
+
+            except json.JSONDecodeError:
+                print(f"Error parsing updates JSON for incident {idx}")
+                updates, start_timestamp, identified_timestamp, close_timestamp = {}, None, None, None
+        else:
+            updates, start_timestamp, identified_timestamp, close_timestamp = {}, None, None, None
 
         if start_timestamp is None and close_timestamp is not None:
             start_timestamp = close_timestamp

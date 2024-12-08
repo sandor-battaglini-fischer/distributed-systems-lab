@@ -32,8 +32,8 @@ print(f"Looking for .env at: {ENV_PATH}")
 # Load environment variables from the correct location
 load_dotenv(ENV_PATH)
 
-print(f"API Key available: {'OPENAI_API_KEY' in os.environ}")
-print(f"API Key value: {os.getenv('OPENAI_API_KEY')[:5]}..." if os.getenv('OPENAI_API_KEY') else "No API key found")
+# print(f"API Key available: {'OPENAI_API_KEY' in os.environ}")
+# print(f"API Key value: {os.getenv('OPENAI_API_KEY')[:5]}..." if os.getenv('OPENAI_API_KEY') else "No API key found")
 
 # Clear any existing proxy settings that might interfere
 if 'http_proxy' in os.environ:

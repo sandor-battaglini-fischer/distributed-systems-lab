@@ -213,3 +213,4 @@ htmlcov/
 *.png
 llm_analysis/client/public/team/balint_old.jpg
 *.pid
+llm_analysis/server/static/data/incident_stages_all_backup_081224.csv

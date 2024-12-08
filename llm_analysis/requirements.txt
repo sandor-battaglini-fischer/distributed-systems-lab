@@ -27,3 +27,4 @@ selenium==4.27.1
 
 scikit-learn==1.2.2
 tensorflow
+statsmodels

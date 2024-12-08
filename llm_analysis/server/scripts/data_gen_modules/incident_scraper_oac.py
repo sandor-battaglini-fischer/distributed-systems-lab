@@ -305,8 +305,9 @@ class DataTransformer:
 
             # Parse services
             df['services'] = df['Service'].apply(DataTransformer.get_services)
-            all_services = ['Playground', 'API', 'Labs', 'ChatGPT', 'api.anthropic.com', 
-                          'claude.ai', 'console.anthropic.com', 'Character.AI', 'StabilityAI']
+            all_services = ['Playground', 'API', 'DALL-E', 'ChatGPT', 'api.anthropic.com', 
+                          'claude.ai', 'console.anthropic.com', 'Character.AI', 
+                          'REST API', 'gRPC API', 'Stable Assistant']
             
             for service in all_services:
                 df[service] = df['services'].apply(lambda x: 1 if service in x else 0)
@@ -384,8 +385,8 @@ def merge_and_deduplicate(existing_df, new_df):
     # Define the expected column order
     expected_columns = [
         'incident_id', 'Incident_Title', 'incident_impact_level', 'Incident_color', 'provider',
-        'Playground', 'API', 'Labs', 'ChatGPT', 'api.anthropic.com', 'claude.ai', 
-        'console.anthropic.com', 'Character.AI', 'StabilityAI',
+        'Playground', 'API', 'DALL-E', 'ChatGPT', 'api.anthropic.com', 'claude.ai', 
+        'console.anthropic.com', 'Character.AI', 'REST API', 'gRPC API', 'Stable Assistant',
         'investigating_flag', 'investigating_timestamp', 'investigating_description',
         'identified_flag', 'identified_timestamp', 'identified_description',
         'monitoring_flag', 'monitoring_timestamp', 'monitoring_description',

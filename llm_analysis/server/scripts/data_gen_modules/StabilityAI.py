@@ -242,38 +242,35 @@ class MyIncidentPage:
         text_to_check = f"{update_title} {update_body} {incident_title}".lower().strip()
 
         for update in updates:
-            update_title = update.get("Update_Title", "").lower().strip()  # Make sure to check title and body of each update
+            update_title = update.get("Update_Title", "").lower().strip()
             update_body = update.get("Update_Body", "").lower().strip()
-
             text_to_check += f" {update_title} {update_body}"
 
-        #print("Text to check after updates:", text_to_check)
+        services = {
+            "REST API": 0,
+            "gRPC API": 0,
+            "Stable Assistant": 0
+        }
 
-        rest_api_found = "rest" in text_to_check
-        grpc_api_found = "grpc" in text_to_check
-        api_found = "api" in text_to_check
-        latency_found = "latency" in text_to_check
-        error_found = "error" in text_to_check
-        stable_found = "stable" in text_to_check or "assistant" in text_to_check
+        # Check for explicit mentions
+        if "rest" in text_to_check:
+            services["REST API"] = 1
+        if "grpc" in text_to_check:
+            services["gRPC API"] = 1
+        if any(term in text_to_check for term in ["stable assistant", "assistant", "stable-assistant"]):
+            services["Stable Assistant"] = 1
 
-        # checking flags for debugging purposes
-        # print(f"REST API found: {rest_api_found}, gRPC API found: {grpc_api_found}, API found: {api_found}, Latency found: {latency_found}, Error found: {error_found}, Stable found: {stable_found}")
+        # If only generic API terms are found, mark both API services
+        if all(v == 0 for v in services.values()):
+            if any(term in text_to_check for term in ["api", "latency", "error", "endpoint"]):
+                services["REST API"] = 1
+                services["gRPC API"] = 1
 
-        if rest_api_found and grpc_api_found:
-            return "REST API and gRPC API"
-        elif rest_api_found:
-            return "REST API"
-        elif grpc_api_found:
-            return "gRPC API"
-        elif api_found:
-            return "REST API and gRPC API"
-        elif stable_found:
-            return "Stable Assistant"
-        # Check for "latency" or "error", but neither "REST", "gRPC", "API", nor "Stable" is found
-        elif (latency_found or error_found) and not (rest_api_found or grpc_api_found or api_found or stable_found):
-            return "REST API and gRPC API"
-        else:
+        # Format the service string for the CSV
+        affected_services = [svc for svc, flag in services.items() if flag == 1]
+        if not affected_services:
             return "Unknown Service"
+        return " and ".join(affected_services)
 
     def switch_to_incident(self, incident, original_window):
         print("Switching to new window:")
