@@ -20,7 +20,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 const features = [
   {
     title: 'Comprehensive Insights',
-    description: 'Gain deep insights into the historicalperformance and reliability of various LLM services with our detailed analytics.'
+    description: 'Gain deep insights into the historical performance and reliability of various LLM services with our detailed analytics.'
   },
   {
     title: 'Multi-service Comparison',
@@ -80,11 +80,11 @@ const llmServices = [
     statusUrl: 'https://status.stability.ai/',
     description: 'Status monitoring for Stability AI services including Stable Diffusion.'
   },
-  {
-    name: 'Google AI',
-    statusUrl: 'https://status.cloud.google.com/',
-    description: 'Status updates for Google AI services including Gemini, Gemini API, and Bard.'
-  }
+  // {
+  //   name: 'Google AI',
+  //   statusUrl: 'https://status.cloud.google.com/',
+  //   description: 'Status updates for Google AI services including Gemini, Gemini API, and Bard.'
+  // }
 ];
 
 function About() {
@@ -121,7 +121,7 @@ function About() {
               LLM Analysis Dashboard
             </Typography>
             <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 4 }}>
-              Empowering developers with comprehensive LLM service insights
+              A tool for comprehensive insights into historical incidents and outages of LLM services
             </Typography>
           </motion.div>
         </Box>
@@ -156,7 +156,7 @@ function About() {
                   Our Mission
                 </Typography>
                 <Typography variant="body1" paragraph>
-                  The LLM Analysis Dashboard aims to empower developers and organizations by providing comprehensive insights into the performance and reliability of various Language Learning Model services.
+                  The LLM Analysis Dashboard aims to empower individuals, developers and organizations by providing comprehensive insights into the performance and reliability of various Language Learning Model services.
                 </Typography>
                 <Divider sx={{ my: 3 }} />
                 <Typography variant="h5" gutterBottom>

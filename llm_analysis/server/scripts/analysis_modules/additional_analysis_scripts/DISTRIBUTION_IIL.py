@@ -26,9 +26,18 @@ def get_provider_display_name(provider):
         'google': 'Google',
         'microsoft': 'Microsoft',
         'meta': 'Meta',
-        'character': 'Character.AI'
+        'character': 'Character.AI',
+        'characterai': 'Character.AI',
+        'stabilityai': 'StabilityAI',
+        'stability': 'StabilityAI',
+        'StabilityAI': 'StabilityAI',
+        'Character.AI': 'Character.AI',
+        'OpenAI': 'OpenAI',
+        'Anthropic': 'Anthropic'
     }
-    return provider_names.get(provider, provider.title())
+    # Handle case variations by converting to lowercase for lookup
+    lookup_key = provider.lower().replace('.', '').replace(' ', '')
+    return provider_names.get(lookup_key, provider.title())
 
 def analyze_impact_levels(df, output_dir):
     df['incident_impact_level'] = pd.to_numeric(df['incident_impact_level'])
@@ -42,15 +51,15 @@ def analyze_impact_levels(df, output_dir):
         "text.usetex": True,
         "font.family": "serif",
         "font.serif": ["Computer Modern Roman"],
-        "font.size": 14,
-        "axes.labelsize": 16,
-        "axes.titlesize": 18,
-        "legend.fontsize": 14,
-        "xtick.labelsize": 14,
-        "ytick.labelsize": 14,
+        "font.size": 18,
+        "axes.labelsize": 18,
+        "axes.titlesize": 20,
+        "legend.fontsize": 16,
+        "xtick.labelsize": 18,
+        "ytick.labelsize": 18,
     })
     
-    fig, ax = plt.subplots(figsize=(14, 10))
+    fig, ax = plt.subplots(figsize=(16, 10))
     
     sns.boxplot(
         data=df,
@@ -110,55 +119,35 @@ def analyze_impact_levels(df, output_dir):
         Line2D([0], [0], marker='o', color='darkred',
                markersize=8, alpha=0.5,
                label='Individual Incidents'),
-    ]
-    
-    for idx, provider in enumerate(providers):
-        provider_data = df[df['provider'] == provider]
-        stats = {
-            'n': len(provider_data),
-            'mean': provider_data['incident_impact_level'].mean(),
-            'median': provider_data['incident_impact_level'].median(),
-            'std': provider_data['incident_impact_level'].std()
-        }
-        
-        plt.hlines(y=stats['mean'], xmin=idx-0.3, xmax=idx+0.3,
-                  colors='blue', linestyles='--', alpha=0.5, linewidth=2,
-                  label='Mean' if idx == 0 else "")
-        
-        plt.hlines(y=stats['median'], xmin=idx-0.3, xmax=idx+0.3,
-                  colors='red', linestyles='-', alpha=0.7, linewidth=2.5,
-                  label='Median' if idx == 0 else "")
-    
-    legend_elements.extend([
         Line2D([0], [0], color='red', linestyle='-', linewidth=2.5, alpha=0.7,
                label='Median'),
         Line2D([0], [0], color='blue', linestyle='--', linewidth=2, alpha=0.5,
                label='Mean')
-    ])
+    ]
     
-    plt.ylim(-0.5, 4.5)
-    
-    plt.legend(handles=legend_elements, 
-              loc='upper right',
+    plt.legend(handles=legend_elements,
+              loc='center left',
+              bbox_to_anchor=(1.02, 0.5),
               title='Plot Elements',
-              title_fontsize=16,
+              title_fontsize=18,
               framealpha=0.9,
               edgecolor='black',
-              fontsize=14)
+              fontsize=16)
+    
+    plt.tight_layout()
+    plt.subplots_adjust(right=0.85, top=0.88, bottom=0.12, left=0.15)
     
     plt.xticks(range(len(providers)), 
                [get_provider_display_name(p) for p in providers],
                rotation=0,
-               fontsize=16)
+               fontsize=18)
     
     timeframe_str = f"{timeframe_start.strftime('%B %Y')} - {timeframe_end.strftime('%B %Y')}"
-    plt.suptitle(r'$\mathrm{Distribution\;of\;Incident\;Impact\;Levels}$', 
-                 y=0.95, fontsize=22)
-    plt.title(f"Analysis Period: {timeframe_str}", 
-             fontsize=16, pad=20)
     
-    plt.xlabel(r'$\mathrm{Provider}$', fontsize=18, labelpad=10)
-    plt.ylabel(r'$\mathrm{Impact\;Level}$', fontsize=18, labelpad=10)
+    # fig.suptitle(r'$\mathrm{Distribution\;of\;Incident\;Impact\;Levels\;and\;Analysis\;Period:\; ' + timeframe_str + '}$', y=0.95, x=0.5, fontsize=24, ha='center')
+    
+    plt.xlabel(r'$\mathrm{Provider}$', fontsize=20, labelpad=15)
+    plt.ylabel(r'$\mathrm{Impact\;Level}$', fontsize=20, labelpad=15)
     
     impact_colors = {}
     for level in range(5):
@@ -176,7 +165,7 @@ def analyze_impact_levels(df, output_dir):
                 va='center',
                 color=impact_colors[i],
                 fontweight='bold',
-                fontsize=16)
+                fontsize=18)
     
     ax.set_yticklabels([])
     
@@ -185,10 +174,11 @@ def analyze_impact_levels(df, output_dir):
     plt.grid(True, axis='y', alpha=0.2, linestyle='--')
     
     plt.savefig(
-        os.path.join(output_dir, 'impact_level_distribution.png'), 
+        os.path.join(output_dir, 'impact_level_distribution_'+timeframe_str+'.png'), 
         dpi=300, 
         bbox_inches='tight', 
-        facecolor='white'
+        facecolor='white',
+        pad_inches=0.2
     )
     plt.close()
     
@@ -262,7 +252,7 @@ def main():
     output_dir = 'server/static/additional_analysis/incident_impact_levels'
     ensure_dir(output_dir)
     
-    df = pd.read_csv('server/static/data/incident_stages.csv')
+    df = pd.read_csv('server/static/data/incident_stages_all.csv')
     
     stats_dict, timeframe_start, timeframe_end = analyze_impact_levels(df, output_dir)
     

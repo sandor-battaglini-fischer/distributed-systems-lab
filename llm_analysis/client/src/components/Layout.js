@@ -44,13 +44,13 @@ const navigationItems = [
     text: 'Data Table', 
     icon: <TableChartIcon />, 
     path: '/data',
-    description: 'Detailed incident records'
+    description: 'View the dataset'
   },
   { 
     text: 'Failure Analysis', 
     icon: <AnalyticsIcon />, 
     path: '/failure-analysis',
-    description: 'In-depth analysis tools'
+    description: 'Chatbot analysis tool'
   },
   { 
     text: 'Predictive Analysis', 
@@ -62,7 +62,7 @@ const navigationItems = [
     text: 'About', 
     icon: <InfoIcon />, 
     path: '/about',
-    description: 'System information'
+    description: 'Further information'
   }
 ];
 
@@ -141,22 +141,40 @@ function Layout({ children, toggleTheme }) {
       flexDirection: 'column'
     }}>
       <Box sx={{ 
-        p: 2,
-        borderBottom: 1,
-        borderColor: 'divider',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
+        flexDirection: 'column'
       }}>
-        <Typography variant="h6" noWrap>
-          LLM Analysis
-        </Typography>
-        <IconButton onClick={toggleTheme} color="inherit" size="small">
-          {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
-      </Box>
-      <Box sx={{ overflow: 'auto', flex: 1, py: 2 }}>
-        <NavigationList />
+        <Box sx={{ 
+          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Typography variant="h6" sx={{ fontSize: '2.2em', fontWeight: 'bold', color: 'primary.main' }}>
+            FAILS
+          </Typography>
+          <IconButton onClick={toggleTheme} color="inherit" size="small">
+            {theme.palette.mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+        </Box>
+        
+        <Divider />
+        
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ lineHeight: 1.4, fontSize: '1.1em' }}>
+            <span style={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: '1.2em' }}>F</span>ramework for the{' '}
+            <span style={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: '1.2em' }}>A</span>nalysis of{' '}
+            <span style={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: '1.2em' }}>I</span>ncidents and Outages of{' '}
+            <span style={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: '1.2em' }}>L</span>LM{' '}
+            <span style={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: '1.2em' }}>S</span>ervices
+          </Typography>
+        </Box>
+
+        <Divider />
+
+        <Box sx={{ overflow: 'auto', flex: 1, py: 2 }}>
+          <NavigationList />
+        </Box>
       </Box>
     </Box>
   );

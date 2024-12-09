@@ -75,7 +75,7 @@ function Dashboard() {
     'Anthropic': ['API', 'Claude', 'Console'],
     'Character.AI': ['Character.AI'],
     'Stability AI': ['Stable Diffusion'],
-    'Google': ['Gemini', 'Gemini API', 'Bard']
+    // 'Google': ['Gemini', 'Gemini API', 'Bard']
   };
 
   const handleServiceToggle = (provider, service) => {
