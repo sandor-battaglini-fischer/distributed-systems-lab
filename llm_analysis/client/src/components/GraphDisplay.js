@@ -13,52 +13,68 @@ import PlotAnalysis from './PlotAnalysis';
 
 const plotConfigs = {
   figure1: {
-    title: 'Days of Week Distribution',
-    description: 'Distribution of incidents across days of the week by provider'
+    title: 'Monthly Overview',
+    description: 'Monthly distribution of incidents across services'
   },
   figure2: {
-    title: 'MTTR Analysis',
-    description: 'Mean Time To Recovery distribution and percentages by service'
+    title: 'Daily Overview',
+    description: 'Daily patterns of incidents across services'
   },
   figure3: {
-    title: 'MTTR by Provider',
-    description: 'Mean Time To Recovery patterns across different providers'
+    title: 'MTTR Distribution',
+    description: 'Mean Time To Recovery distribution analysis'
   },
   figure4: {
-    title: 'MTTR Distribution',
-    description: 'Detailed MTTR distribution with service-level boxplots'
+    title: 'MTTR by Provider',
+    description: 'Mean Time To Recovery comparison across providers'
   },
   figure5: {
-    title: 'MTBF Analysis',
-    description: 'Mean Time Between Failures distribution and percentages by service'
+    title: 'MTTR Boxplot',
+    description: 'Detailed MTTR distribution with service-level boxplots'
   },
   figure6: {
-    title: 'MTBF by Provider',
-    description: 'Mean Time Between Failures patterns across different providers'
+    title: 'MTBF Distribution',
+    description: 'Mean Time Between Failures distribution analysis'
   },
   figure7: {
-    title: 'MTBF Distribution',
-    description: 'Detailed MTBF distribution with service-level boxplots'
+    title: 'MTBF by Provider',
+    description: 'Mean Time Between Failures comparison across providers'
   },
   figure8: {
-    title: 'Resolution Activities',
-    description: 'Duration and distribution of incident resolution stages'
+    title: 'MTBF Boxplot',
+    description: 'Detailed MTBF distribution with service-level boxplots'
   },
   figure9: {
+    title: 'Resolution Activities',
+    description: 'Analysis of incident resolution activities'
+  },
+  figure10: {
     title: 'Status Combinations',
     description: 'Analysis of incident status transition patterns'
   },
-  figure10: {
-    title: 'Service Availability',
-    description: 'Daily service availability and SLA compliance'
-  },
   figure11: {
-    title: 'Temporal Patterns',
-    description: 'Monthly trends and hourly distribution of incidents'
+    title: 'Daily Availability',
+    description: 'Daily service availability patterns'
   },
   figure12: {
     title: 'Service Co-occurrence',
-    description: 'Analysis of simultaneous incidents across services'
+    description: 'Analysis of simultaneous service incidents'
+  },
+  figure13: {
+    title: 'Co-occurrence Probability',
+    description: 'Probability analysis of service co-occurrences'
+  },
+  figure14: {
+    title: 'Service Incidents',
+    description: 'Analysis of service-specific incident patterns'
+  },
+  figure15: {
+    title: 'Incident Outage Timeline',
+    description: 'Timeline visualization of service outages'
+  },
+  figure16: {
+    title: 'Autocorrelations',
+    description: 'Temporal autocorrelation analysis of incidents'
   }
 };
 
@@ -104,7 +120,7 @@ const formatServiceName = (serviceName) => {
   const [provider, service] = serviceName.split(':');
   switch(true) {
     case provider === 'OpenAI' && service === 'DALL-E':
-      return 'OpenAI DALL·E';  // Special case for DALL-E
+      return 'OpenAI DALL-E';  // Special case for DALL-E
     case provider === 'OpenAI':
       return `OpenAI ${service}`;
     case provider === 'Anthropic':
@@ -113,8 +129,18 @@ const formatServiceName = (serviceName) => {
       return `Google ${service}`;
     case provider === 'Character.AI':
       return 'Character.AI';
-    case provider === 'Stability AI':
-      return 'Stability AI';
+    case provider === 'StabilityAI': {
+      // Handle different StabilityAI services
+      switch(service) {
+        case 'REST':
+        case 'gRPC':
+        case 'Assistant':
+        case 'Stable Diffusion':
+          return `StabilityAI ${service}`;
+        default:
+          return `StabilityAI ${service}`; // Fallback for any new services
+      }
+    }
     default:
       return serviceName;
   }
@@ -525,53 +551,69 @@ const GraphDisplay = forwardRef((props, ref) => {
   // Define grid layout configurations
   const getGridConfig = (figureId) => {
     const configs = {
-      figure1: { // Days of Week
+      figure1: { // Monthly Overview
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '300px', sm: '400px', md: '500px' }
       },
-      figure2: { // MTTR Analysis
+      figure2: { // Daily Overview
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '300px', sm: '400px', md: '500px' }
+      },
+      figure3: { // MTTR Distribution
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 6' },
         minHeight: { xs: '400px', sm: '500px' }
       },
-      figure3: { // MTTR by Provider
+      figure4: { // MTTR by Provider
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 6' },
         minHeight: { xs: '400px', sm: '500px' }
       },
-      figure4: { // MTTR Distribution
+      figure5: { // MTTR Boxplot
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '300px', sm: '400px' }
       },
-      figure5: { // MTBF Analysis
+      figure6: { // MTBF Distribution
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 6' },
         minHeight: { xs: '400px', sm: '500px' }
       },
-      figure6: { // MTBF by Provider
+      figure7: { // MTBF by Provider
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 6' },
         minHeight: { xs: '400px', sm: '500px' }
       },
-      figure7: { // MTBF Distribution
+      figure8: { // MTBF Boxplot
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '300px', sm: '400px' }
       },
-      figure8: { // Resolution Activities
+      figure9: { // Resolution Activities
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '300px', sm: '400px' }
       },
-      figure9: { // Status Combinations
+      figure10: { // Status Combinations
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '300px', sm: '400px' }
       },
-      figure10: { // Service Availability
+      figure11: { // Daily Availability
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '300px', sm: '400px' }
-      },
-      figure11: { // Temporal Patterns
-        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
-        minHeight: { xs: '400px', sm: '500px' }
       },
       figure12: { // Service Co-occurrence
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
-        minHeight: { xs: '400px', sm: '400px' }
+        minHeight: { xs: '400px', sm: '500px' }
+      },
+      figure13: { // Co-occurrence Probability
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '400px', sm: '500px' }
+      },
+      figure14: { // Service Incidents
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '400px', sm: '500px' }
+      },
+      figure15: { // Incident Outage Timeline
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '400px', sm: '500px' }
+      },
+      figure16: { // Autocorrelations
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '400px', sm: '500px' }
       }
     };
     return configs[figureId] || {

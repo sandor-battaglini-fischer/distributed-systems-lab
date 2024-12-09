@@ -136,7 +136,7 @@ def analyze_cooccurrence_probability(start_date, end_date, selected_services):
             norm=norm,
             annot=True,
             fmt=".2f",
-            cbar_kws={'label': r'\textbf{Co-occurrence Outage Probability (\%)}'},
+            cbar_kws={'label': 'Co-occurrence Outage Probability (%)'},
             linewidths=.5,
             linecolor='gray',
             ax=ax

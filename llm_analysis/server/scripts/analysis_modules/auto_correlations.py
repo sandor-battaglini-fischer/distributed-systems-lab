@@ -52,13 +52,16 @@ def analyze_autocorrelation(start_date, end_date, selected_services):
             'api.anthropic.com': 'API-Anthropic',
             'claude.ai': 'Claude',
             'console.anthropic.com': 'Console',
-            'Character.AI': 'Character.AI'
+            'Character.AI': 'Character.AI',
+            'REST API': 'REST API',
+            'gRPC API': 'gRPC API',
+            'Stable Assistant': 'Stable Assistant'
         })
 
         # Group data by provider
         service_lst = ['API-OpenAI', 'ChatGPT', 'DALL-E', 'Playground',
                       'API-Anthropic', 'Claude', 'Console', 'Character.AI',
-                      'StabilityAI']
+                      'REST API', 'gRPC API', 'Stable Assistant']
         
         dfs = {}
         for service in service_lst:
@@ -84,8 +87,6 @@ def analyze_autocorrelation(start_date, end_date, selected_services):
         for provider in provider_lst:
             prefix = provider_mapping[provider]
             provider_services = [s for s in selected_services if s.startswith(prefix)]
-            print(f"\nChecking {provider}:")
-            print(f"- Services matching prefix '{prefix}': {provider_services}")
             if provider_services:
                 dfs_provider[provider] = pd.DataFrame()
                 for service in service_lst:

@@ -27,7 +27,7 @@ This project is a web application built using React for the frontend and Flask f
 
 3. **Set up Python virtual environment:**
 
-   Navigate to the `server` directory and create a virtual environment:
+   Navigate to the `llm_analysis` directory and create a virtual environment:
 
    ```bash
    cd llm_analysis

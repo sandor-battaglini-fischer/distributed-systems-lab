@@ -94,7 +94,7 @@ function Dashboard() {
         serviceId = 'Character.AI:Character.AI';
         break;
       case provider === 'Stability AI' && service === 'Stable Diffusion':
-        serviceId = 'Stability AI:Stable Diffusion';
+        serviceId = 'StabilityAI:StabilityAI';
         break;
       case provider === 'Google':
         serviceId = `Google:${service}`;
@@ -126,7 +126,7 @@ function Dashboard() {
         serviceId = 'Character.AI:Character.AI';
         break;
       case provider === 'Stability AI' && service === 'Stable Diffusion':
-        serviceId = 'Stability AI:Stable Diffusion';
+        serviceId = 'StabilityAI:StabilityAI';
         break;
       case provider === 'Google':
         serviceId = `Google:${service}`;
@@ -164,7 +164,7 @@ function Dashboard() {
         case provider === 'Character.AI' && service === 'Character.AI':
           return 'Character.AI:Character.AI';
         case provider === 'Stability AI' && service === 'Stable Diffusion':
-          return 'Stability AI:Stable Diffusion';
+          return 'StabilityAI:Stable Diffusion';
         case provider === 'Google':
           return `Google:${service}`;
         default:

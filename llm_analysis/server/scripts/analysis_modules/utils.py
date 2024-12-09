@@ -30,7 +30,9 @@ def get_service_mapping():
         'Anthropic:Claude': 'claude.ai',
         'Anthropic:Console': 'console.anthropic.com',
         'Character.AI:Character.AI': 'Character.AI',
-        'StabilityAI:StabilityAI': 'StabilityAI',
+        'StabilityAI:REST': 'REST API',
+        'StabilityAI:gRPC': 'gRPC API',
+        'StabilityAI:Assistant': 'Stable Assistant'
     }
 
 def get_service_mapping_outage():
@@ -43,8 +45,7 @@ def get_service_mapping_outage():
         'Anthropic:API': 'api.anthropic.com',
         'Anthropic:Claude': 'claude.ai',
         'Anthropic:Console': 'console.anthropic.com',
-        'Character.AI:Character.AI': 'character.ai',
-        'StabilityAI:StabilityAI': 'StabilityAI',
+        'Character.AI:Character.AI': 'character.ai'
     }
 
 
