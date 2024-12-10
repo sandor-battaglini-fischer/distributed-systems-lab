@@ -27,6 +27,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from scripts.analysis_modules.failure_reasons import analyze_failure_reasons
 import pandas as pd
 from routes.incidents import incidents_bp
+from scripts.run_incident_scrapers import main as run_scrapers
+from flask_cors import CORS
 
 # Configure logging
 logging.basicConfig(
@@ -43,6 +45,14 @@ logging.getLogger('PIL').setLevel(logging.WARNING)
 WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='')
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"],
+        "max_age": 3600
+    }
+})
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.config.update(
     MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max-limit
@@ -54,6 +64,7 @@ app.config.update(
     PREFERRED_URL_SCHEME='http',
     PROPAGATE_EXCEPTIONS=True,
 )
+
 
 # Ensure plots directory exists
 PLOTS_DIR = os.path.join(os.path.dirname(__file__), 'static', 'plots')
@@ -141,9 +152,9 @@ def analyze():
                 plots['figure10'] = status_combinations_path
 
             # Service Availability (figure11)
-            daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
-            if daily_availability_path:
-                plots['figure11'] = daily_availability_path
+            # daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
+            # if daily_availability_path:
+            #     plots['figure11'] = daily_availability_path
 
             # Service Co-occurrence (figure12)
             cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, selected_services)
@@ -296,6 +307,20 @@ def analyze_failures():
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+
+@app.route('/api/run-scrapers', methods=['POST'])
+def run_incident_scrapers():
+    try:
+        run_scrapers()
+        return jsonify({
+            'status': 'success',
+            'message': 'Scrapers completed successfully'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
         }), 500
 
 if __name__ == '__main__':

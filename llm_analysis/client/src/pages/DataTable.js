@@ -15,6 +15,7 @@ import {
   FilterList as FilterIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
+  CloudSync as CloudSyncIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useTheme } from '@mui/material/styles';
@@ -23,6 +24,8 @@ const DataTable = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [scraping, setScraping] = useState(false);
+  const [scrapeMessage, setScrapeMessage] = useState(null);
   const theme = useTheme();
 
   const formatDate = (dateStr) => {
@@ -78,7 +81,8 @@ const DataTable = () => {
             px: 1,
             py: 0.5,
             borderRadius: 1,
-            display: 'inline-block'
+            display: 'inline-block',
+            textAlign: 'center'
           }} 
           variant="body2"
         >
@@ -280,6 +284,45 @@ const DataTable = () => {
     link.click();
   };
 
+  const handleRunScrapers = async () => {
+    try {
+      setScraping(true);
+      setScrapeMessage({ severity: 'info', message: 'Running scrapers...' });
+      
+      const response = await fetch('/api/run-scrapers', {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to run scrapers: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      setScrapeMessage({ 
+        severity: 'success', 
+        message: 'Scrapers completed successfully. Refreshing data...' 
+      });
+      
+      // Refresh the data
+      await fetchData();
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setScrapeMessage(null);
+      }, 5000);
+      
+    } catch (err) {
+      console.error('Error running scrapers:', err);
+      setScrapeMessage({ 
+        severity: 'error', 
+        message: err.message || 'Failed to run scrapers' 
+      });
+    } finally {
+      setScraping(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 2, maxWidth: '100%', mx: 'auto' }}>
       <Paper 
@@ -306,10 +349,27 @@ const DataTable = () => {
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Run Scrapers">
+              <IconButton
+                onClick={handleRunScrapers}
+                disabled={scraping || loading}
+                size="small"
+                color="primary"
+                sx={{
+                  animation: scraping ? 'spin 2s linear infinite' : 'none',
+                  '@keyframes spin': {
+                    '0%': { transform: 'rotate(0deg)' },
+                    '100%': { transform: 'rotate(360deg)' }
+                  }
+                }}
+              >
+                <CloudSyncIcon />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Refresh Data">
               <IconButton 
                 onClick={fetchData}
-                disabled={loading}
+                disabled={loading || scraping}
                 size="small"
                 sx={{
                   transition: 'all 0.2s',
@@ -325,7 +385,7 @@ const DataTable = () => {
               variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={handleExport}
-              disabled={loading || data.length === 0}
+              disabled={loading || scraping || data.length === 0}
               size="small"
             >
               Export CSV
@@ -336,6 +396,16 @@ const DataTable = () => {
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {scrapeMessage && (
+          <Alert 
+            severity={scrapeMessage.severity} 
+            sx={{ mb: 2 }}
+            onClose={() => setScrapeMessage(null)}
+          >
+            {scrapeMessage.message}
           </Alert>
         )}
 
