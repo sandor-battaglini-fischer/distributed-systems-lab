@@ -138,7 +138,7 @@ const formatServiceName = (serviceName) => {
         case 'Stable Diffusion':
           return `StabilityAI ${service}`;
         default:
-          return `StabilityAI ${service}`; // Fallback for any new services
+          return `StabilityAI ${service}`; // Fallback 
       }
     }
     default:

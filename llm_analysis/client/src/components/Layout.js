@@ -47,10 +47,10 @@ const navigationItems = [
     description: 'View the dataset'
   },
   { 
-    text: 'Failure Analysis', 
+    text: 'Failure Analysis Chatbot', 
     icon: <AnalyticsIcon />, 
     path: '/failure-analysis',
-    description: 'Chatbot analysis tool'
+    description: 'LLM-powered interaction'
   },
   { 
     text: 'Predictive Analysis', 

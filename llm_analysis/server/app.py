@@ -29,6 +29,11 @@ import pandas as pd
 from routes.incidents import incidents_bp
 from scripts.run_incident_scrapers import main as run_scrapers
 from flask_cors import CORS
+from threading import Thread
+import queue
+import time
+import io
+import sys
 
 # Configure logging
 logging.basicConfig(
@@ -79,6 +84,91 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 scripts_dir = os.path.join(BASE_DIR, "scripts")
 
 app.register_blueprint(incidents_bp)
+
+# Add this global variable to track scraper status
+scraper_status = {
+    'is_running': False,
+    'last_message': None,
+    'start_time': None,
+    'error': None,
+    'output': [],
+    'completed': False
+}
+
+# Add this function to run scrapers in background
+def run_scrapers_background():
+    global scraper_status
+    try:
+        scraper_status.update({
+            'is_running': True,
+            'start_time': time.time(),
+            'last_message': "Starting scrapers...",
+            'error': None,
+            'output': [],
+            'completed': False
+        })
+        
+        # Capture output using StringIO
+        output = io.StringIO()
+        error_output = io.StringIO()
+        original_stdout = sys.stdout
+        original_stderr = sys.stderr
+        
+        try:
+            # Redirect stdout and stderr
+            sys.stdout = output
+            sys.stderr = error_output
+            
+            # Run the scrapers
+            logger.info("Starting incident scrapers in background thread...")
+            run_scrapers()
+            
+            # Get the output
+            stdout_content = output.getvalue()
+            stderr_content = error_output.getvalue()
+            
+            # Store all output lines
+            if stdout_content:
+                scraper_status['output'].extend(stdout_content.splitlines())
+            
+            # Update status with output
+            if stderr_content:
+                scraper_status['error'] = stderr_content
+                scraper_status['last_message'] = f"Error: {stderr_content}"
+                logger.error(f"Scraper errors: {stderr_content}")
+            else:
+                # Look for specific completion messages
+                completion_indicators = [
+                    "Scraping completed",
+                    "All scrapers finished",
+                    "Data collection complete",
+                    "Successfully scraped"
+                ]
+                
+                if any(indicator.lower() in stdout_content.lower() 
+                      for indicator in completion_indicators):
+                    scraper_status['completed'] = True
+                    scraper_status['last_message'] = "Scrapers completed successfully"
+                else:
+                    scraper_status['last_message'] = "Process running..."
+                
+                logger.info(f"Scraper output: {stdout_content}")
+                
+        finally:
+            # Restore stdout and stderr
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
+            output.close()
+            error_output.close()
+            
+    except Exception as e:
+        logger.exception("Error in background scraper process")
+        scraper_status['error'] = str(e)
+        scraper_status['last_message'] = f"Error: {str(e)}"
+    finally:
+        # Only mark as not running if we've either completed or encountered an error
+        if scraper_status['completed'] or scraper_status['error']:
+            scraper_status['is_running'] = False
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
@@ -312,15 +402,73 @@ def analyze_failures():
 @app.route('/api/run-scrapers', methods=['POST'])
 def run_incident_scrapers():
     try:
-        run_scrapers()
+        # Check if scrapers are already running
+        if scraper_status['is_running']:
+            elapsed_time = time.time() - scraper_status['start_time']
+            return jsonify({
+                'status': 'running',
+                'message': f"Scrapers already running ({int(elapsed_time)}s elapsed)",
+                'details': scraper_status['last_message']
+            }), 202
+        
+        # Start scrapers in background thread
+        thread = Thread(target=run_scrapers_background)
+        thread.daemon = True
+        thread.start()
+        
         return jsonify({
-            'status': 'success',
-            'message': 'Scrapers completed successfully'
-        }), 200
+            'status': 'started',
+            'message': 'Scraper process started in background',
+            'details': 'This may take several minutes. Use /api/scraper-status to check progress.'
+        }), 202
+        
     except Exception as e:
+        logger.exception("Error starting scrapers")
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': str(e),
+            'details': traceback.format_exc()
+        }), 500
+
+# Add new endpoint to check scraper status
+@app.route('/api/scraper-status', methods=['GET'])
+def get_scraper_status():
+    try:
+        if scraper_status['is_running']:
+            elapsed_time = time.time() - scraper_status['start_time']
+            return jsonify({
+                'status': 'running',
+                'message': f"Scrapers running ({int(elapsed_time)}s elapsed)",
+                'details': scraper_status['last_message'],
+                'output': scraper_status['output'][-5:]
+            }), 200
+        elif scraper_status['error']:
+            return jsonify({
+                'status': 'error',
+                'message': 'Scrapers failed',
+                'details': scraper_status['error'],
+                'output': scraper_status['output'][-5:]
+            }), 500
+        elif scraper_status['completed']:
+            return jsonify({
+                'status': 'success',
+                'message': 'Scrapers completed successfully',
+                'details': scraper_status['last_message'],
+                'output': scraper_status['output'][-5:]
+            }), 200
+        else:
+            return jsonify({
+                'status': 'idle',
+                'message': 'No scraper process running',
+                'details': scraper_status.get('last_message', 'No status available')
+            }), 200
+            
+    except Exception as e:
+        logger.exception("Error checking scraper status")
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'details': traceback.format_exc()
         }), 500
 
 if __name__ == '__main__':

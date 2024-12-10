@@ -26,6 +26,7 @@ const DataTable = () => {
   const [error, setError] = useState(null);
   const [scraping, setScraping] = useState(false);
   const [scrapeMessage, setScrapeMessage] = useState(null);
+  const [statusCheckInterval, setStatusCheckInterval] = useState(null);
   const theme = useTheme();
 
   const formatDate = (dateStr) => {
@@ -284,44 +285,116 @@ const DataTable = () => {
     link.click();
   };
 
+  const checkScraperStatus = async () => {
+    try {
+      const response = await fetch('/api/scraper-status');
+      const result = await response.json();
+      
+      if (result.status === 'running') {
+        setScrapeMessage({
+          severity: 'info',
+          message: result.message,
+          details: result.details
+        });
+      } else if (result.status === 'error') {
+        setScrapeMessage({
+          severity: 'error',
+          message: 'Scraper process failed',
+          details: result.details
+        });
+        clearInterval(statusCheckInterval);
+        setStatusCheckInterval(null);
+      } else {
+        // Process completed
+        setScrapeMessage({
+          severity: 'success',
+          message: 'Scrapers completed successfully',
+          details: result.message
+        });
+        clearInterval(statusCheckInterval);
+        setStatusCheckInterval(null);
+        await fetchData();
+      }
+    } catch (err) {
+      console.error('Error checking scraper status:', err);
+    }
+  };
+
   const handleRunScrapers = async () => {
     try {
       setScraping(true);
-      setScrapeMessage({ severity: 'info', message: 'Running scrapers...' });
+      setScrapeMessage({ 
+        severity: 'info', 
+        message: 'Starting scraper process...',
+        details: 'Initializing scrapers...'
+      });
       
       const response = await fetch('/api/run-scrapers', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to run scrapers: ${response.statusText}`);
-      }
       
       const result = await response.json();
       
-      setScrapeMessage({ 
-        severity: 'success', 
-        message: 'Scrapers completed successfully. Refreshing data...' 
-      });
-      
-      // Refresh the data
-      await fetchData();
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => {
-        setScrapeMessage(null);
-      }, 5000);
+      if (response.status === 202) {
+        // Start polling for status updates
+        setScrapeMessage({
+          severity: 'info',
+          message: result.message,
+          details: result.details
+        });
+        
+        // Clear any existing interval
+        if (statusCheckInterval) {
+          clearInterval(statusCheckInterval);
+        }
+        
+        // Start new status check interval
+        const intervalId = setInterval(checkScraperStatus, 5000); // Check every 5 seconds
+        setStatusCheckInterval(intervalId);
+        
+        // Set a timeout to stop checking after 15 minutes
+        setTimeout(() => {
+          if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+            setStatusCheckInterval(null);
+            setScrapeMessage({
+              severity: 'warning',
+              message: 'Status checking timed out',
+              details: 'The scraper process may still be running. Please refresh the page to check for new data.'
+            });
+          }
+        }, 900000); // 15 minutes
+        
+      } else if (!response.ok) {
+        throw new Error(result.details || result.message || 'Failed to start scrapers');
+      }
       
     } catch (err) {
       console.error('Error running scrapers:', err);
       setScrapeMessage({ 
         severity: 'error', 
-        message: err.message || 'Failed to run scrapers' 
+        message: 'Failed to start scraper process',
+        details: err.message
       });
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        setStatusCheckInterval(null);
+      }
     } finally {
       setScraping(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+      }
+    };
+  }, [statusCheckInterval]);
 
   return (
     <Box sx={{ p: 2, maxWidth: '100%', mx: 'auto' }}>
@@ -405,7 +478,22 @@ const DataTable = () => {
             sx={{ mb: 2 }}
             onClose={() => setScrapeMessage(null)}
           >
-            {scrapeMessage.message}
+            <div>
+              {scrapeMessage.message}
+              {scrapeMessage.details && (
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mt: 1, 
+                    whiteSpace: 'pre-wrap',
+                    fontSize: '0.85rem',
+                    opacity: 0.8
+                  }}
+                >
+                  {scrapeMessage.details}
+                </Typography>
+              )}
+            </div>
           </Alert>
         )}
 
