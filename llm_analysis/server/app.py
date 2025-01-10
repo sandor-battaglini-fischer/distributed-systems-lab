@@ -27,13 +27,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from scripts.analysis_modules.failure_reasons import analyze_failure_reasons
 import pandas as pd
 from routes.incidents import incidents_bp
-from scripts.run_incident_scrapers import main as run_scrapers
 from flask_cors import CORS
-from threading import Thread
-import queue
-import time
-import io
-import sys
 
 # Configure logging
 logging.basicConfig(
@@ -85,91 +79,6 @@ scripts_dir = os.path.join(BASE_DIR, "scripts")
 
 app.register_blueprint(incidents_bp)
 
-# Add this global variable to track scraper status
-scraper_status = {
-    'is_running': False,
-    'last_message': None,
-    'start_time': None,
-    'error': None,
-    'output': [],
-    'completed': False
-}
-
-# Add this function to run scrapers in background
-def run_scrapers_background():
-    global scraper_status
-    try:
-        scraper_status.update({
-            'is_running': True,
-            'start_time': time.time(),
-            'last_message': "Starting scrapers...",
-            'error': None,
-            'output': [],
-            'completed': False
-        })
-        
-        # Capture output using StringIO
-        output = io.StringIO()
-        error_output = io.StringIO()
-        original_stdout = sys.stdout
-        original_stderr = sys.stderr
-        
-        try:
-            # Redirect stdout and stderr
-            sys.stdout = output
-            sys.stderr = error_output
-            
-            # Run the scrapers
-            logger.info("Starting incident scrapers in background thread...")
-            run_scrapers()
-            
-            # Get the output
-            stdout_content = output.getvalue()
-            stderr_content = error_output.getvalue()
-            
-            # Store all output lines
-            if stdout_content:
-                scraper_status['output'].extend(stdout_content.splitlines())
-            
-            # Update status with output
-            if stderr_content:
-                scraper_status['error'] = stderr_content
-                scraper_status['last_message'] = f"Error: {stderr_content}"
-                logger.error(f"Scraper errors: {stderr_content}")
-            else:
-                # Look for specific completion messages
-                completion_indicators = [
-                    "Scraping completed",
-                    "All scrapers finished",
-                    "Data collection complete",
-                    "Successfully scraped"
-                ]
-                
-                if any(indicator.lower() in stdout_content.lower() 
-                      for indicator in completion_indicators):
-                    scraper_status['completed'] = True
-                    scraper_status['last_message'] = "Scrapers completed successfully"
-                else:
-                    scraper_status['last_message'] = "Process running..."
-                
-                logger.info(f"Scraper output: {stdout_content}")
-                
-        finally:
-            # Restore stdout and stderr
-            sys.stdout = original_stdout
-            sys.stderr = original_stderr
-            output.close()
-            error_output.close()
-            
-    except Exception as e:
-        logger.exception("Error in background scraper process")
-        scraper_status['error'] = str(e)
-        scraper_status['last_message'] = f"Error: {str(e)}"
-    finally:
-        # Only mark as not running if we've either completed or encountered an error
-        if scraper_status['completed'] or scraper_status['error']:
-            scraper_status['is_running'] = False
-
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
@@ -188,58 +97,100 @@ def analyze():
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
         plots = {}
+        errors = []  # Track errors for individual plots
+        
         try:
             cleanup_old_plots()
-
+            
             # Monthly Overview (figure1)
-            monthly_overview_path = generate_monthly_overview(start_date, end_date, selected_services)
-            if monthly_overview_path:
-                plots['figure1'] = monthly_overview_path
+            try:
+                monthly_overview_path = generate_monthly_overview(start_date, end_date, selected_services)
+                if monthly_overview_path:
+                    plots['figure1'] = monthly_overview_path
+            except Exception as e:
+                errors.append(f"Error generating monthly overview: {str(e)}")
+                logger.exception('Error generating monthly overview')
 
             # Daily Overview (figure2)
-            daily_overview_path = generate_daily_overview(start_date, end_date, selected_services)
-            if daily_overview_path:
-                plots['figure2'] = daily_overview_path
-            
+            try:
+                daily_overview_path = generate_daily_overview(start_date, end_date, selected_services)
+                if daily_overview_path:
+                    plots['figure2'] = daily_overview_path
+            except Exception as e:
+                errors.append(f"Error generating daily overview: {str(e)}")
+                logger.exception('Error generating daily overview')
+
             # MTTR Analysis (figure3)
-            mttr_analysis_path = generate_mttr_distribution(start_date, end_date, selected_services)
-            if mttr_analysis_path:
-                plots['figure3'] = mttr_analysis_path
-            
+            try:
+                mttr_analysis_path = generate_mttr_distribution(start_date, end_date, selected_services)
+                if mttr_analysis_path:
+                    plots['figure3'] = mttr_analysis_path
+            except Exception as e:
+                errors.append(f"Error generating MTTR analysis: {str(e)}")
+                logger.exception('Error generating MTTR analysis')
+
             # MTTR by Provider (figure4)
-            mttr_provider_path = generate_mttr_provider(start_date, end_date, selected_services)
-            if mttr_provider_path:
-                plots['figure4'] = mttr_provider_path
+            try:
+                mttr_provider_path = generate_mttr_provider(start_date, end_date, selected_services)
+                if mttr_provider_path:
+                    plots['figure4'] = mttr_provider_path
+            except Exception as e:
+                errors.append(f"Error generating MTTR by provider: {str(e)}")
+                logger.exception('Error generating MTTR by provider')
 
             # MTTR Distribution (figure5)
-            mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, selected_services)
-            if mttr_boxplot_path:
-                plots['figure5'] = mttr_boxplot_path
+            try:
+                mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, selected_services)
+                if mttr_boxplot_path:
+                    plots['figure5'] = mttr_boxplot_path
+            except Exception as e:
+                errors.append(f"Error generating MTTR distribution: {str(e)}")
+                logger.exception('Error generating MTTR distribution')
 
             # MTBF Analysis (figure6)
-            mtbf_analysis_path = generate_mtbf_distribution(start_date, end_date, selected_services)
-            if mtbf_analysis_path:
-                plots['figure6'] = mtbf_analysis_path
+            try:
+                mtbf_analysis_path = generate_mtbf_distribution(start_date, end_date, selected_services)
+                if mtbf_analysis_path:
+                    plots['figure6'] = mtbf_analysis_path
+            except Exception as e:
+                errors.append(f"Error generating MTBF analysis: {str(e)}")
+                logger.exception('Error generating MTBF analysis')
 
             # MTBF by Provider (figure7)
-            mtbf_provider_path = generate_mtbf_provider(start_date, end_date, selected_services)
-            if mtbf_provider_path:
-                plots['figure7'] = mtbf_provider_path
+            try:
+                mtbf_provider_path = generate_mtbf_provider(start_date, end_date, selected_services)
+                if mtbf_provider_path:
+                    plots['figure7'] = mtbf_provider_path
+            except Exception as e:
+                errors.append(f"Error generating MTBF by provider: {str(e)}")
+                logger.exception('Error generating MTBF by provider')
 
             # MTBF Distribution (figure8)
-            mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, selected_services)
-            if mtbf_boxplot_path:
-                plots['figure8'] = mtbf_boxplot_path
+            try:
+                mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, selected_services)
+                if mtbf_boxplot_path:
+                    plots['figure8'] = mtbf_boxplot_path
+            except Exception as e:
+                errors.append(f"Error generating MTBF distribution: {str(e)}")
+                logger.exception('Error generating MTBF distribution')
 
             # Resolution Activities (figure9)
-            resolution_activities_path = generate_resolution_activities(start_date, end_date, selected_services)
-            if resolution_activities_path:
-                plots['figure9'] = resolution_activities_path
+            try:
+                resolution_activities_path = generate_resolution_activities(start_date, end_date, selected_services)
+                if resolution_activities_path:
+                    plots['figure9'] = resolution_activities_path
+            except Exception as e:
+                errors.append(f"Error generating resolution activities: {str(e)}")
+                logger.exception('Error generating resolution activities')
 
             # Status Combinations (figure10)
-            status_combinations_path = generate_status_combinations(start_date, end_date, selected_services)
-            if status_combinations_path:
-                plots['figure10'] = status_combinations_path
+            try:
+                status_combinations_path = generate_status_combinations(start_date, end_date, selected_services)
+                if status_combinations_path:
+                    plots['figure10'] = status_combinations_path
+            except Exception as e:
+                errors.append(f"Error generating status combinations: {str(e)}")
+                logger.exception('Error generating status combinations')
 
             # Service Availability (figure11)
             # daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
@@ -247,29 +198,49 @@ def analyze():
             #     plots['figure11'] = daily_availability_path
 
             # Service Co-occurrence (figure12)
-            cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, selected_services)
-            if cooccurrence_matrix_path:
-                plots['figure12'] = cooccurrence_matrix_path
+            try:
+                cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, selected_services)
+                if cooccurrence_matrix_path:
+                    plots['figure12'] = cooccurrence_matrix_path
+            except Exception as e:
+                errors.append(f"Error generating service co-occurrence matrix: {str(e)}")
+                logger.exception('Error generating service co-occurrence matrix')
 
             # Service Co-occurrence Probability (figure13)
-            cooccurrence_probability_path = generate_cooccurrence_probability(start_date, end_date, selected_services)
-            if cooccurrence_probability_path:
-                plots['figure13'] = cooccurrence_probability_path
+            try:
+                cooccurrence_probability_path = generate_cooccurrence_probability(start_date, end_date, selected_services)
+                if cooccurrence_probability_path:
+                    plots['figure13'] = cooccurrence_probability_path
+            except Exception as e:
+                errors.append(f"Error generating service co-occurrence probability: {str(e)}")
+                logger.exception('Error generating service co-occurrence probability')
 
             # Service Incidents (figure14)
-            service_incidents_path = generate_service_incidents(start_date, end_date, selected_services)
-            if service_incidents_path:
-                plots['figure14'] = service_incidents_path
+            try:
+                service_incidents_path = generate_service_incidents(start_date, end_date, selected_services)
+                if service_incidents_path:
+                    plots['figure14'] = service_incidents_path
+            except Exception as e:
+                errors.append(f"Error generating service incidents: {str(e)}")
+                logger.exception('Error generating service incidents')
 
             # Incident Outage Timeline (figure15)
-            incident_outage_path = generate_incident_outage(start_date, end_date, selected_services)
-            if incident_outage_path:
-                plots['figure15'] = incident_outage_path
+            try:
+                incident_outage_path = generate_incident_outage(start_date, end_date, selected_services)
+                if incident_outage_path:
+                    plots['figure15'] = incident_outage_path
+            except Exception as e:
+                errors.append(f"Error generating incident outage timeline: {str(e)}")
+                logger.exception('Error generating incident outage timeline')
 
             # Autocorrelations (figure16)
-            autocorrelations_path = generate_autocorrelations(start_date, end_date, selected_services)
-            if autocorrelations_path:
-                plots['figure16'] = autocorrelations_path
+            try:
+                autocorrelations_path = generate_autocorrelations(start_date, end_date, selected_services)
+                if autocorrelations_path:
+                    plots['figure16'] = autocorrelations_path
+            except Exception as e:
+                errors.append(f"Error generating autocorrelations: {str(e)}")
+                logger.exception('Error generating autocorrelations')
 
             # Verify files exist
             for plot_name, plot_path in plots.items():
@@ -282,19 +253,15 @@ def analyze():
                 raise ValueError("No plots were generated successfully")
 
         except Exception as plot_error:
-            logger.exception('Error generating plots')
-            return jsonify({
-                'success': False,
-                'error': str(plot_error),
-                'details': traceback.format_exc()
-            }), 500
+            logger.exception('Error in plot generation pipeline')
+            errors.append(f"Pipeline error: {str(plot_error)}")
 
-        logger.info('Analysis complete')
-        logger.debug('Generated plots: %s', plots)
+        # Return both plots and errors
         return jsonify({
-            'success': True,
-            'message': 'Analysis complete',
-            'plots': plots
+            'success': len(errors) == 0,  # Success if no errors
+            'message': 'Analysis complete with some errors' if errors else 'Analysis complete',
+            'plots': plots,  # Return whatever plots we managed to generate
+            'errors': errors  # Include any errors that occurred
         })
 
     except Exception as e:
@@ -302,7 +269,8 @@ def analyze():
         return jsonify({
             'success': False,
             'error': str(e),
-            'details': traceback.format_exc()
+            'details': traceback.format_exc(),
+            'plots': plots  # Still return any plots we generated
         }), 500
 
 # Add error handlers
@@ -397,78 +365,6 @@ def analyze_failures():
         return jsonify({
             'success': False,
             'error': str(e)
-        }), 500
-
-@app.route('/api/run-scrapers', methods=['POST'])
-def run_incident_scrapers():
-    try:
-        # Check if scrapers are already running
-        if scraper_status['is_running']:
-            elapsed_time = time.time() - scraper_status['start_time']
-            return jsonify({
-                'status': 'running',
-                'message': f"Scrapers already running ({int(elapsed_time)}s elapsed)",
-                'details': scraper_status['last_message']
-            }), 202
-        
-        # Start scrapers in background thread
-        thread = Thread(target=run_scrapers_background)
-        thread.daemon = True
-        thread.start()
-        
-        return jsonify({
-            'status': 'started',
-            'message': 'Scraper process started in background',
-            'details': 'This may take several minutes. Use /api/scraper-status to check progress.'
-        }), 202
-        
-    except Exception as e:
-        logger.exception("Error starting scrapers")
-        return jsonify({
-            'status': 'error',
-            'message': str(e),
-            'details': traceback.format_exc()
-        }), 500
-
-# Add new endpoint to check scraper status
-@app.route('/api/scraper-status', methods=['GET'])
-def get_scraper_status():
-    try:
-        if scraper_status['is_running']:
-            elapsed_time = time.time() - scraper_status['start_time']
-            return jsonify({
-                'status': 'running',
-                'message': f"Scrapers running ({int(elapsed_time)}s elapsed)",
-                'details': scraper_status['last_message'],
-                'output': scraper_status['output'][-5:]
-            }), 200
-        elif scraper_status['error']:
-            return jsonify({
-                'status': 'error',
-                'message': 'Scrapers failed',
-                'details': scraper_status['error'],
-                'output': scraper_status['output'][-5:]
-            }), 500
-        elif scraper_status['completed']:
-            return jsonify({
-                'status': 'success',
-                'message': 'Scrapers completed successfully',
-                'details': scraper_status['last_message'],
-                'output': scraper_status['output'][-5:]
-            }), 200
-        else:
-            return jsonify({
-                'status': 'idle',
-                'message': 'No scraper process running',
-                'details': scraper_status.get('last_message', 'No status available')
-            }), 200
-            
-    except Exception as e:
-        logger.exception("Error checking scraper status")
-        return jsonify({
-            'status': 'error',
-            'message': str(e),
-            'details': traceback.format_exc()
         }), 500
 
 if __name__ == '__main__':

@@ -78,7 +78,6 @@ def save_plot(fig, plot_type, start_date, end_date, services):
     start_str = pd.to_datetime(start_date).strftime('%Y%m%d')
     end_str = pd.to_datetime(end_date).strftime('%Y%m%d')
     
-
     service_names = []
     for service in services:
         provider, name = service.split(':')
@@ -92,9 +91,16 @@ def save_plot(fig, plot_type, start_date, end_date, services):
             elif name == 'Console':
                 service_names.append('Anthropic_Console')
         elif provider == 'Character.AI':
-            service_names.append('CharacterAI')
-        elif provider == 'Stability AI':
-            service_names.append('StabilityAI')
+            service_names.append('Character.AI')
+        elif provider == 'StabilityAI':
+            if name == 'REST':
+                service_names.append('StabilityAI_REST')
+            elif name == 'gRPC':
+                service_names.append('StabilityAI_gRPC')
+            elif name == 'Assistant':
+                service_names.append('StabilityAI_Assistant')
+            else:
+                service_names.append(f'StabilityAI_{name}')
         elif provider == 'Google':
             service_names.append(f'Google_{name}')
     

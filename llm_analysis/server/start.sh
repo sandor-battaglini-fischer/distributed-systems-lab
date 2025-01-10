@@ -21,14 +21,20 @@ if [ -f "$PID_FILE" ]; then
     fi
 fi
 
-# Start Gunicorn
+# Create logs directory if it doesn't exist
+mkdir -p logs
+
+# Start Gunicorn with specific log files
 python -m gunicorn --bind 0.0.0.0:5000 wsgi:app \
     --workers 4 \
     --timeout 120 \
-    --access-logfile - \
-    --error-logfile - \
+    --access-logfile logs/access.log \
+    --error-logfile logs/error.log \
     --reload \
-    --daemon \
+    # --daemon \
     --pid "$PID_FILE"
 
 echo "Server started. PID file: $PID_FILE"
+echo "Logs available in:"
+echo "  - Access log: logs/access.log"
+echo "  - Error log: logs/error.log"
