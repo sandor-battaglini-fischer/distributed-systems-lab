@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from .utils import load_and_prepare_data
+import traceback
 
 def analyze_service_incidents(start_date, end_date, services):
     """
@@ -87,9 +88,10 @@ def analyze_service_incidents(start_date, end_date, services):
         impact_range_percent = impact_range_df.T.div(impact_range_df.T.sum(axis=1), axis=0) * 100
         impact_range_percent = impact_range_percent.round(2)
 
-        figures = {}
-
-        # Plot OpenAI service combinations
+        # Create a single figure with subplots
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 16))
+        
+        # Plot OpenAI data on first subplot
         service_labels = {
             'API-OpenAI': 'O1',
             'ChatGPT': 'O2',
@@ -105,33 +107,19 @@ def analyze_service_incidents(start_date, end_date, services):
         )
         impacted_combinations_counts = openai_df['impacted_services_short_str'].value_counts()
 
-        plt.figure(figsize=(10, 8))
-        ax = impacted_combinations_counts[::-1].plot(
-            kind='barh',
-            color='grey',
-            edgecolor='black'
-        )
-
-        for i, count in enumerate(impacted_combinations_counts[::-1]):
-            plt.text(count + 0.5, i, str(count), ha='left', va='center', fontsize=12)
-
-        plt.title("OpenAI", fontsize=16, pad=20)
-        plt.ylabel("Impacted Services", fontsize=14)
-        plt.xlabel("Number of Incidents", fontsize=14)
+        ax1.barh(range(len(impacted_combinations_counts)), impacted_combinations_counts[::-1], color='grey', edgecolor='black')
+        ax1.set_title("OpenAI", fontsize=16, pad=20)
 
         label_text = "O1: API-OpenAI\nO2: ChatGPT\nO3: DALL-E\nO4: Playground"
-        plt.text(
+        ax1.text(
             0.99, 0.01, label_text,
             ha='right', va='bottom',
-            transform=plt.gca().transAxes,
+            transform=ax1.transAxes,
             fontsize=10,
             bbox=dict(facecolor='white', alpha=0.5)
         )
 
-        plt.tight_layout()
-        figures['openai'] = plt.gcf()
-
-        # Plot Anthropic service combinations
+        # Plot Anthropic data on second subplot  
         service_labels = {
             'API-Anthropic': 'A1',
             'Claude': 'A2',
@@ -146,37 +134,22 @@ def analyze_service_incidents(start_date, end_date, services):
         )
         impacted_combinations_counts = anthropic_df['impacted_services_short_str'].value_counts()
 
-        plt.figure(figsize=(10, 8))
-        ax = impacted_combinations_counts[::-1].plot(
-            kind='barh',
-            color='grey',
-            edgecolor='black'
-        )
-
-        for i, count in enumerate(impacted_combinations_counts[::-1]):
-            plt.text(count + 0.5, i, str(count), ha='left', va='center', fontsize=12)
-
-        plt.title("Anthropic", fontsize=16, pad=20)
-        plt.ylabel("Impacted Services", fontsize=14)
-        plt.xlabel("Number of Incidents", fontsize=14)
+        ax2.barh(range(len(impacted_combinations_counts)), impacted_combinations_counts[::-1], color='grey', edgecolor='black')
+        ax2.set_title("Anthropic", fontsize=16, pad=20)
 
         label_text = "A1: API-Anthropic\nA2: Claude\nA3: Console"
-        plt.text(
+        ax2.text(
             0.99, 0.01, label_text,
             ha='right', va='bottom',
-            transform=plt.gca().transAxes,
+            transform=ax2.transAxes,
             fontsize=10,
             bbox=dict(facecolor='white', alpha=0.5)
         )
 
         plt.tight_layout()
-        figures['anthropic'] = plt.gcf()
-
-        # Create the figure
-        fig = plt.figure(figsize=(15, 10))
-
-        return fig  # Instead of returning a dictionary of subplots 
+        return fig
 
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        raise 
+        print(f"Error in service incidents analysis: {str(e)}")
+        traceback.print_exc()
+        return None 

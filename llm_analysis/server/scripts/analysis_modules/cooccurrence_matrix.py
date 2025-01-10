@@ -9,6 +9,7 @@ from .utils import (
     setup_plotting_style,
     get_service_mapping_outage
 )
+import traceback
 
 def analyze_outage_cooccurrence_matrix(start_date, end_date, selected_services):
     """
@@ -62,10 +63,15 @@ def analyze_outage_cooccurrence_matrix(start_date, end_date, selected_services):
             if standardized_service not in pivot_df.columns:
                 pivot_df[standardized_service] = 0
 
-        #remove stabilityai for now
-        selected_services = [service for service in selected_services if service != 'StabilityAI:StabilityAI']
-        print(f"Selected services after removing StabilityAI: {selected_services}")
-        # Reorder columns to match the selected_services list
+        # Don't remove StabilityAI services
+        if not selected_services:
+            raise ValueError("No services selected for analysis")
+
+        # Ensure pivot_df has all selected services
+        for service in selected_services:
+            if service not in pivot_df.columns:
+                pivot_df[service] = 0
+
         pivot_df = pivot_df[selected_services]
         
         # Step 3: Calculate Co-occurrence Matrix
@@ -136,4 +142,5 @@ def analyze_outage_cooccurrence_matrix(start_date, end_date, selected_services):
 
     except Exception as e:
         print(f"Error in outage co-occurrence matrix analysis: {str(e)}")
-        raise
+        traceback.print_exc()
+        return None

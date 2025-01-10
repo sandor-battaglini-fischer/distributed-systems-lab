@@ -20,10 +20,12 @@ from .analysis_modules.mttr_boxplot import analyze_mttr_boxplot
 from .analysis_modules.mtbf_boxplot import analyze_mtbf_boxplot
 from .analysis_modules.mttr_provider import analyze_mttr_provider
 from .analysis_modules.mtbf_provider import analyze_mtbf_provider
+from .analysis_modules.incident_distribution import analyze_incident_distribution
 import base64
 from openai import OpenAI
 from dotenv import load_dotenv
 import io
+import traceback
 
 # Get the absolute path to the .env file
 ENV_PATH = os.path.join(os.path.dirname(__file__), '.env')
@@ -365,6 +367,19 @@ def generate_mtbf_provider(start_date, end_date, services):
     except Exception as e:
         print(f"Error generating MTBF provider analysis: {e}")
         return None
+    
+def generate_incident_distribution(start_date, end_date, services):
+    """Generate incident distribution analysis"""
+    try:
+        cleanup_old_plots()
+        fig = analyze_incident_distribution(start_date, end_date, services)
+        if fig:
+            return save_plot(fig, 'incident_distribution', start_date, end_date, services)
+        return None
+    except Exception as e:
+        print(f"Error generating incident distribution: {e}")
+        traceback.print_exc()  # Add traceback for better debugging
+        return None
 
 def encode_image_to_base64(fig):
     """Convert matplotlib figure to base64 string"""
@@ -411,7 +426,8 @@ def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services
         'figure13': f"Analyze this incident outage timeline{date_context}{service_context}. Identify outage patterns and trends over time.",
         'figure14': f"Review this daily overview plot{date_context}{service_context}. Identify daily trends and patterns in incident activity.",
         'figure15': f"Analyze this co-occurrence probability plot{date_context}{service_context}. Identify significant service dependencies or correlations.",
-        'figure16': f"Analyze these service incidents{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics."
+        'figure16': f"Analyze these service incidents{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics.",
+        'figure17': f"Analyze this incident distribution{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics."
     }
     
     base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns."
@@ -549,5 +565,7 @@ def summarize_analyses(analyses, start_date=None, end_date=None, services=None):
             "success": False,
             "error": f"Summary failed: {str(e)}"
         }
+
+
 
 os.makedirs(PLOTS_DIR, exist_ok=True) 

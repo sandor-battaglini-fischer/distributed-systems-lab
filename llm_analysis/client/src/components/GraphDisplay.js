@@ -75,6 +75,10 @@ const plotConfigs = {
   figure16: {
     title: 'Autocorrelations',
     description: 'Temporal autocorrelation analysis of incidents'
+  },
+  figure17: {
+    title: 'Incident Impact Distribution',
+    description: 'Distribution of incident impact levels across providers'
   }
 };
 
@@ -629,6 +633,10 @@ const GraphDisplay = forwardRef((props, ref) => {
         minHeight: { xs: '400px', sm: '500px' }
       },
       figure16: { // Autocorrelations
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '400px', sm: '500px' }
+      },
+      figure17: { // Incident Distribution
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '400px', sm: '500px' }
       }

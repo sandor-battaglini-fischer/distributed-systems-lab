@@ -19,6 +19,7 @@ from scripts.analysis import (
     generate_mtbf_boxplot,
     generate_mttr_provider,
     generate_mtbf_provider,
+    generate_incident_distribution,
 )
 from werkzeug.exceptions import HTTPException
 import traceback
@@ -241,6 +242,15 @@ def analyze():
             except Exception as e:
                 errors.append(f"Error generating autocorrelations: {str(e)}")
                 logger.exception('Error generating autocorrelations')
+
+            # Incident Distribution (figure17)
+            try:
+                incident_distribution_path = generate_incident_distribution(start_date, end_date, selected_services)
+                if incident_distribution_path:
+                    plots['figure17'] = incident_distribution_path
+            except Exception as e:
+                errors.append(f"Error generating incident distribution: {str(e)}")
+                logger.exception('Error generating incident distribution')
 
             # Verify files exist
             for plot_name, plot_path in plots.items():

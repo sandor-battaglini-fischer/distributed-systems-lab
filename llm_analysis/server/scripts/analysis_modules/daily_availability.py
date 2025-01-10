@@ -59,12 +59,12 @@ def analyze_daily_availability(start_date, end_date, services):
         # Plot availability lines
         colors = sns.color_palette('Set2', n_colors=len(services_to_analyze))
         for idx, (service, avail) in enumerate(availability_data.items()):
-            plt.plot(date_range, avail, 
-                    label=service.replace('_', ' '), 
-                    color=colors[idx],
-                    marker='o', 
-                    markersize=4,
-                    alpha=0.8)
+            ax.plot(date_range, avail, 
+                   label=service.replace('_', ' '), 
+                   color=colors[idx],
+                   marker='o', 
+                   markersize=4,
+                   alpha=0.8)
 
         # Add reference lines for common SLA levels
         sla_levels = [99.9, 99.99, 99.999]
@@ -72,23 +72,23 @@ def analyze_daily_availability(start_date, end_date, services):
         sla_labels = ['99.9%', '99.99%', '99.999%']
         
         for level, color, label in zip(sla_levels, sla_colors, sla_labels):
-            plt.axhline(y=level, color=color, linestyle='--', alpha=0.5)
-            plt.text(plt.xlim()[1], level, f' {label}', 
-                    va='center', ha='left', color=color)
+            ax.axhline(y=level, color=color, linestyle='--', alpha=0.5)
+            ax.text(ax.get_xlim()[1], level, f' {label}', 
+                   va='center', ha='left', color=color)
 
         # Customize plot
-        plt.grid(True, linestyle='--', alpha=0.7)
-        plt.xlabel('Date')
-        plt.ylabel('Availability (%)')
-        plt.title('Daily Service Availability')
-        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax.grid(True, linestyle='--', alpha=0.7)
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Availability (%)')
+        ax.set_title('Daily Service Availability')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         plt.xticks(rotation=45)
 
         # Set y-axis limits to focus on high availability range
-        plt.ylim(99, 100.1)
+        ax.set_ylim(99, 100.1)
 
         plt.tight_layout()
-        return fig
+        return fig  # Return the original figure instead of creating a copy
 
     except Exception as e:
         print(f"Error in daily availability analysis: {str(e)}")
