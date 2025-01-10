@@ -98,7 +98,9 @@ def analyze_autocorrelation(start_date, end_date, selected_services):
                     
                 print(f"- Final dataframe size for {provider}: {len(dfs_provider[provider])}")
 
-        figures = {}
+        # Create single figure instead of dict of subplots
+        fig = plt.figure(figsize=(15, 10))
+        
         for provider, provider_df in dfs_provider.items():
             if provider_df.empty:
                 continue
@@ -176,9 +178,9 @@ def analyze_autocorrelation(start_date, end_date, selected_services):
 
             plt.suptitle(f"{provider.capitalize()} Incident Autocorrelations", fontsize=14, y=1.05)
             plt.tight_layout()
-            figures[provider] = plt.gcf()
 
-        return figures
+        # Return the figure
+        return fig
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")

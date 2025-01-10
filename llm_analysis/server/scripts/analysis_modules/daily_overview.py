@@ -212,7 +212,7 @@ def analyze_daily_overview(start_date, end_date, selected_services):
         # Add overall title
         timeframe_start = pd.to_datetime(start_date).strftime('%d %B %Y').replace(' ', '\\;')
         timeframe_end = pd.to_datetime(end_date).strftime('%d %B %Y').replace(' ', '\\;')
-        title = f"$\\mathrm{{Hourly\\;Incident\\;Distribution\\;by\\;Provider\\;({timeframe_start}\\;-\\;{timeframe_end})}}$"
+        title = f"$\\mathrm{{Hourly\\;Incident\\;Distribution\\;by\\;Provider\\;({timeframe_start}\\;-\\;{timeframe_end})\\;[UTC]}$"
         if df.empty:
             title += "\n$\\mathrm{(No\\;incidents\\;recorded\\;in\\;this\\;period)}$"
         fig.suptitle(title, y=0.98, fontsize=22)  # Title closer to plot

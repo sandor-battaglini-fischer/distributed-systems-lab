@@ -7,23 +7,20 @@ from .utils import (
     get_services_to_analyze,
     setup_plotting_style
 )
+import traceback
 
-def analyze_daily_availability(start_date, end_date, selected_services):
+def analyze_daily_availability(start_date, end_date, services):
     """
     Analyze and visualize daily service availability patterns
     """
     try:
-        # Load and prepare data
-        df = load_and_prepare_data(
-            start_date, 
-            end_date,
-            timestamp_columns=[
-                'investigating_timestamp', 'resolved_timestamp'
-            ] + ['start_timestamp', 'close_timestamp']
-        )
+        df = load_and_prepare_data(start_date, end_date)
+        print("Data loaded successfully")
+        print(f"Available columns: {df.columns.tolist()}")
+        print(f"Services to analyze: {services}")
         
         # Get services to analyze
-        services_to_analyze = get_services_to_analyze(selected_services)
+        services_to_analyze = get_services_to_analyze(services)
         
         # Setup plotting style
         setup_plotting_style()
@@ -95,4 +92,5 @@ def analyze_daily_availability(start_date, end_date, selected_services):
 
     except Exception as e:
         print(f"Error in daily availability analysis: {str(e)}")
-        raise 
+        traceback.print_exc()
+        return None 

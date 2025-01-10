@@ -22,6 +22,10 @@ def timeline_incident_outage(start_date, end_date, selected_services):
         fig (matplotlib.figure.Figure): The figure object with the plots.
     """
     try:
+        # Convert string dates to timestamps if they aren't already
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+        
         # Map selected services to CSV column names
         services_to_analyze_outage = get_services_to_analyze_outage(selected_services)
 

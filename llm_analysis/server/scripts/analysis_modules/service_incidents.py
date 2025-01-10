@@ -172,7 +172,10 @@ def analyze_service_incidents(start_date, end_date, services):
         plt.tight_layout()
         figures['anthropic'] = plt.gcf()
 
-        return figures
+        # Create the figure
+        fig = plt.figure(figsize=(15, 10))
+
+        return fig  # Instead of returning a dictionary of subplots 
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")

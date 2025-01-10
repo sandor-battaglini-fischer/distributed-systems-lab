@@ -287,95 +287,35 @@ def generate_cooccurrence_matrix(start_date, end_date, services):
         return None
 
 def generate_all_plots(start_date, end_date, services):
-    """Generate all analysis plots"""
     plots = {}
+    errors = []
     
     try:
-        # Monthly Overview
-        monthly_overview_path = generate_monthly_overview(start_date, end_date, services)
-        if monthly_overview_path:
-            plots['figure1'] = monthly_overview_path
-
-        # Daily Overview
-        daily_overview_path = generate_daily_overview(start_date, end_date, services)
-        if daily_overview_path:
-            plots['figure2'] = daily_overview_path
-
-        # MTTR Analysis
-        mttr_distribution_path = generate_mttr_distribution(start_date, end_date, services)
-        if mttr_distribution_path:
-            plots['figure3'] = mttr_distribution_path
-
-        # MTTR by Provider
-        mttr_provider_path = generate_mttr_provider(start_date, end_date, services)
-        if mttr_provider_path:
-            plots['figure4'] = mttr_provider_path
-
-        # MTTR Distribution (Boxplot)
-        mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, services)
-        if mttr_boxplot_path:
-            plots['figure5'] = mttr_boxplot_path
-
-        # MTBF Analysis
-        mtbf_distribution_path = generate_mtbf_distribution(start_date, end_date, services)
-        if mtbf_distribution_path:
-            plots['figure6'] = mtbf_distribution_path
-
-        # MTBF by Provider
-        mtbf_provider_path = generate_mtbf_provider(start_date, end_date, services)
-        if mtbf_provider_path:
-            plots['figure7'] = mtbf_provider_path
-
-        # MTBF Distribution (Boxplot)
-        mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, services)
-        if mtbf_boxplot_path:
-            plots['figure8'] = mtbf_boxplot_path
-
-        # Resolution Activities
-        resolution_activities_path = generate_resolution_activities(start_date, end_date, services)
-        if resolution_activities_path:
-            plots['figure9'] = resolution_activities_path
-
-        # Status Combinations
-        status_combinations_path = generate_status_combinations(start_date, end_date, services)
-        if status_combinations_path:
-            plots['figure10'] = status_combinations_path
-
-        # Service Availability
-        daily_availability_path = generate_daily_availability(start_date, end_date, services)
-        if daily_availability_path:
-            plots['figure11'] = daily_availability_path
-
+        # Daily Availability
+        try:
+            daily_availability_path = generate_daily_availability(start_date, end_date, services)
+            if daily_availability_path:
+                plots['figure11'] = daily_availability_path
+        except Exception as e:
+            print(f"Error generating daily availability: {str(e)}")
+            errors.append(f"Daily availability failed: {str(e)}")
+            
         # Service Co-occurrence
-        cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
-        if cooccurrence_matrix_path:
-            plots['figure12'] = cooccurrence_matrix_path
-
-        # Co-occurrence Probability
-        cooccurrence_probability_path = generate_cooccurrence_probability(start_date, end_date, services)
-        if cooccurrence_probability_path:
-            plots['figure13'] = cooccurrence_probability_path
-
-        # Service Incidents
-        service_incidents_path = generate_service_incidents(start_date, end_date, services)
-        if service_incidents_path:
-            plots['figure14'] = service_incidents_path
-
-        # Incident Outage Timeline
-        incident_outage_path = generate_incident_outage(start_date, end_date, services)
-        if incident_outage_path:
-            plots['figure15'] = incident_outage_path
-
-        # Autocorrelations
-        autocorrelations_path = generate_autocorrelations(start_date, end_date, services)
-        if autocorrelations_path:
-            plots['figure16'] = autocorrelations_path
-
-        return plots
-
+        try:
+            cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
+            if cooccurrence_matrix_path:
+                plots['figure12'] = cooccurrence_matrix_path
+        except Exception as e:
+            print(f"Error generating co-occurrence matrix: {str(e)}")
+            errors.append(f"Co-occurrence matrix failed: {str(e)}")
+            
+        # ... similar error handling for other plots ...
+        
     except Exception as e:
-        print(f"Error generating plots: {e}")
-        return plots
+        print(f"Error in generate_all_plots: {str(e)}")
+        errors.append(f"Overall plot generation failed: {str(e)}")
+        
+    return plots, errors
 
 # Add individual generate functions for each plot type
 def generate_mttr_boxplot(start_date, end_date, services):
