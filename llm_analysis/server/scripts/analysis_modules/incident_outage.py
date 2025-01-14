@@ -8,6 +8,7 @@ from .utils import (
     setup_plotting_style
 )
 from datetime import datetime
+import traceback
 
 def timeline_incident_outage(start_date, end_date, selected_services):
     """
@@ -132,8 +133,15 @@ def timeline_incident_outage(start_date, end_date, selected_services):
         # Adjust layout to prevent overlap
         plt.tight_layout()
 
+        # Add overall title
+        timeframe_start = start_date.strftime('%d %B %Y')
+        timeframe_end = end_date.strftime('%d %B %Y')
+        fig.suptitle(f"Incident and Outage Timeline ({timeframe_start} - {timeframe_end})", 
+                    y=1.02, fontsize=16)
+
         return fig
 
     except Exception as e:
         print(f"An error occurred in timeline_incident_outage: {e}")
-        raise
+        traceback.print_exc()  # Add traceback for better error reporting
+        return None

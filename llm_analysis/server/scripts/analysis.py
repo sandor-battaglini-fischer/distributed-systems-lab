@@ -288,36 +288,35 @@ def generate_cooccurrence_matrix(start_date, end_date, services):
         print(f"Error generating co-occurrence matrix: {e}")
         return None
 
-def generate_all_plots(start_date, end_date, services):
-    plots = {}
-    errors = []
+# def generate_all_plots(start_date, end_date, services):
+#     plots = {}
+#     errors = []
     
-    try:
-        # Daily Availability
-        try:
-            daily_availability_path = generate_daily_availability(start_date, end_date, services)
-            if daily_availability_path:
-                plots['figure11'] = daily_availability_path
-        except Exception as e:
-            print(f"Error generating daily availability: {str(e)}")
-            errors.append(f"Daily availability failed: {str(e)}")
+#     try:
+#         # Daily Availability
+#         try:
+#             daily_availability_path = generate_daily_availability(start_date, end_date, services)
+#             if daily_availability_path:
+#                 plots['figure11'] = daily_availability_path
+#         except Exception as e:
+#             print(f"Error generating daily availability: {str(e)}")
+#             errors.append(f"Daily availability failed: {str(e)}")
             
-        # Service Co-occurrence
-        try:
-            cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
-            if cooccurrence_matrix_path:
-                plots['figure12'] = cooccurrence_matrix_path
-        except Exception as e:
-            print(f"Error generating co-occurrence matrix: {str(e)}")
-            errors.append(f"Co-occurrence matrix failed: {str(e)}")
+#         # Service Co-occurrence
+#         try:
+#             cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
+#             if cooccurrence_matrix_path:
+#                 plots['figure12'] = cooccurrence_matrix_path
+#         except Exception as e:
+#             print(f"Error generating co-occurrence matrix: {str(e)}")
+#             errors.append(f"Co-occurrence matrix failed: {str(e)}")
             
-        # ... similar error handling for other plots ...
         
-    except Exception as e:
-        print(f"Error in generate_all_plots: {str(e)}")
-        errors.append(f"Overall plot generation failed: {str(e)}")
+#     except Exception as e:
+#         print(f"Error in generate_all_plots: {str(e)}")
+#         errors.append(f"Overall plot generation failed: {str(e)}")
         
-    return plots, errors
+#     return plots, errors
 
 # Add individual generate functions for each plot type
 def generate_mttr_boxplot(start_date, end_date, services):
@@ -378,7 +377,7 @@ def generate_incident_distribution(start_date, end_date, services):
         return None
     except Exception as e:
         print(f"Error generating incident distribution: {e}")
-        traceback.print_exc()  # Add traceback for better debugging
+        traceback.print_exc()
         return None
 
 def encode_image_to_base64(fig):
@@ -427,7 +426,7 @@ def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services
         'figure14': f"Review this daily overview plot{date_context}{service_context}. Identify daily trends and patterns in incident activity.",
         'figure15': f"Analyze this co-occurrence probability plot{date_context}{service_context}. Identify significant service dependencies or correlations.",
         'figure16': f"Analyze these service incidents{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics.",
-        'figure17': f"Analyze this incident distribution{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics."
+        'figure17': f"Analyze this incident distribution{date_context}{service_context}. Tell which services have the highest average incident levels, don't mention the median! Which provider has the most high level and critical incidents?"
     }
     
     base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns."

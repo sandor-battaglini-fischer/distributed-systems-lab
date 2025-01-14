@@ -194,9 +194,13 @@ def analyze():
                 logger.exception('Error generating status combinations')
 
             # Service Availability (figure11)
-            # daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
-            # if daily_availability_path:
-            #     plots['figure11'] = daily_availability_path
+            try:
+                daily_availability_path = generate_daily_availability(start_date, end_date, selected_services)
+                if daily_availability_path:
+                    plots['figure11'] = daily_availability_path
+            except Exception as e:
+                errors.append(f"Error generating daily availability: {str(e)}")
+                logger.exception('Error generating daily availability')
 
             # Service Co-occurrence (figure12)
             try:
