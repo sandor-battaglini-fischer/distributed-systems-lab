@@ -13,44 +13,44 @@ import PlotAnalysis from './PlotAnalysis';
 
 const plotConfigs = {
   figure1: {
-    title: 'Monthly Overview',
-    description: 'Monthly distribution of incidents across services'
+    title: 'Weekly Overview',
+    description: 'Distribution of incidents across services per day of the week'
   },
   figure2: {
     title: 'Daily Overview',
-    description: 'Daily patterns of incidents across services'
+    description: 'Distribution of incidents across services per hour of day'
   },
   figure3: {
-    title: 'MTTR Distribution',
-    description: 'Mean Time To Recovery distribution analysis'
+    title: 'Mean Time To Recovery by Service',
+    description: 'Mean Time To Recovery cumulative distribution and percentage of incidents'
   },
   figure4: {
-    title: 'MTTR by Provider',
-    description: 'Mean Time To Recovery comparison across providers'
+    title: 'Mean Time To Recovery by Provider',
+    description: 'Mean Time To Recovery cumulative distribution comparison across providers'
   },
   figure5: {
-    title: 'MTTR Boxplot',
+    title: 'Mean Time To Recovery Boxplot',
     description: 'Detailed MTTR distribution with service-level boxplots'
   },
   figure6: {
-    title: 'MTBF Distribution',
-    description: 'Mean Time Between Failures distribution analysis'
+    title: 'Mean Time Between Failures by Service',
+    description: 'Mean Time Between Failures cumulative distribution and percentage of incidents'
   },
   figure7: {
-    title: 'MTBF by Provider',
-    description: 'Mean Time Between Failures comparison across providers'
+    title: 'Mean Time Between Failures by Provider',
+    description: 'Mean Time Between Failures cumulative distribution comparison across providers'
   },
   figure8: {
-    title: 'MTBF Boxplot',
+    title: 'Mean Time Between Failures Boxplot',
     description: 'Detailed MTBF distribution with service-level boxplots'
   },
   figure9: {
-    title: 'Resolution Activities',
-    description: 'Analysis of incident resolution activities'
+    title: 'Resolution Stages',
+    description: 'Duration and Distribution of Resolution Stages'
   },
   figure10: {
     title: 'Status Combinations',
-    description: 'Analysis of incident status transition patterns'
+    description: 'Concurrent status combinations'
   },
   figure11: {
     title: 'Daily Availability',
@@ -58,15 +58,15 @@ const plotConfigs = {
   },
   figure12: {
     title: 'Service Co-occurrence',
-    description: 'Analysis of simultaneous service incidents'
+    description: 'Co-occurrence matrix of simultaneous service incidents'
   },
   figure13: {
     title: 'Co-occurrence Probability',
-    description: 'Probability analysis of service co-occurrences'
+    description: 'Probability matrix of service co-occurrences'
   },
   figure14: {
-    title: 'Service Incidents',
-    description: 'Analysis of service-specific incident patterns'
+    title: 'Per Service Co-occurrence',
+    description: 'Co-occurrence of failures across services for each provide'
   },
   figure15: {
     title: 'Incident Outage Timeline',
@@ -240,13 +240,15 @@ const PlotAnalysisDialog = ({ open, onClose, plotTitle, analysis, loading, error
           </Alert>
         ) : (
           <Typography 
-            variant="body1"
-            sx={{
-              whiteSpace: 'pre-line',
-              '& strong': {
-                fontWeight: 600,
-                color: 'primary.main',
-              },
+            variant="body2" 
+            sx={{ 
+                whiteSpace: 'pre-line',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                '& strong': {
+                  fontWeight: 600,
+                  color: 'primary.main',
+                },
             }}
           >
             {analysis}

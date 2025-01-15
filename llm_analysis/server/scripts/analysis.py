@@ -410,26 +410,42 @@ def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services
             service_context = f" for {service_list}"
 
     prompts = {
-        'figure1': f"Analyze this day-of-week distribution plot{date_context}{service_context}. Focus on peak incident days and any provider-specific patterns.",
-        'figure2': f"Analyze this MTTR (Mean Time To Recovery) plot{date_context}{service_context}. Identify services with concerning recovery times and any outliers.",
-        'figure3': f"Analyze this provider-based MTTR plot{date_context}{service_context}. Compare provider performance and highlight significant differences.",
-        'figure4': f"Review this MTTR distribution boxplot{date_context}{service_context}. Note any concerning spreads or outliers in recovery times.",
-        'figure5': f"Analyze this MTBF (Mean Time Between Failures) plot{date_context}{service_context}. Identify services with concerning failure frequencies.",
-        'figure6': f"Analyze this provider-based MTBF plot{date_context}{service_context}. Compare provider reliability and highlight significant patterns.",
-        'figure7': f"Review this MTBF distribution boxplot{date_context}{service_context}. Note any concerning patterns in failure intervals.",
-        'figure8': f"Analyze these resolution activities{date_context}{service_context}. Identify bottlenecks or inefficiencies in the resolution process.",
-        'figure9': f"Analyze these status combinations{date_context}{service_context}. Highlight unusual transition patterns or process inefficiencies.",
-        'figure10': f"Review this service availability plot{date_context}{service_context}. Identify SLA breaches and availability trends.",
-        'figure11': f"Analyze these temporal patterns{date_context}{service_context}. Identify peak incident times and monthly trends.",
-        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Identify significant service dependencies or correlations.",
-        'figure13': f"Analyze this incident outage timeline{date_context}{service_context}. Identify outage patterns and trends over time.",
-        'figure14': f"Review this daily overview plot{date_context}{service_context}. Identify daily trends and patterns in incident activity.",
-        'figure15': f"Analyze this co-occurrence probability plot{date_context}{service_context}. Identify significant service dependencies or correlations.",
-        'figure16': f"Analyze these service incidents{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics.",
-        'figure17': f"Analyze this incident distribution{date_context}{service_context}. Tell which services have the highest average incident levels, don't mention the median! Which provider has the most high level and critical incidents?"
+        'figure1': f"Analyze this monthly incident distribution{date_context}{service_context}. Focus on days with highest incident counts and identify any weekly patterns or trends.",
+        
+        'figure2': f"Review this daily incident pattern analysis{date_context}{service_context}. Look for hours of the day with elevated incident rates and identify any common patterns.",
+        
+        'figure3': f"Examine this MTTR (Mean Time To Recovery) distribution{date_context}{service_context}. The top plot shows the cumulative distribution functions per service and the bottom plot shows the percentage of incidents by service. Focus on the differences betwen services, the faster (left shifted CDF) and slower (right shifted CDF) services, and any patterns.",
+        
+        'figure4': f"Analyze this provider-level Mean Time To Recovery comparison{date_context}{service_context}. Compare recovery times across different providers and identify which providers have faster (left shifted CDF) and slower (right shifted CDF) recovery times.",
+        
+        'figure5': f"Review this Mean Time To Recovery boxplot distribution{date_context}{service_context}. Look for services with high median recovery times or large spreads in their recovery times.",
+        
+        'figure6': f"Examine this MTBF (Mean Time Between Failures) distribution{date_context}{service_context}. The top plot shows the cumulative distribution functions per service and the bottom plot shows the percentage of incidents by service. Focus on the differences betwen services, the faster (left shifted CDF) and slower (right shifted CDF) services, and any patterns.",
+        
+        'figure7': f"Analyze this provider-based Mean Time Between Failures comparison{date_context}{service_context}. Compare times between failures across different providers and identify which providers have faster (left shifted CDF) and slower (right shifted CDF) times.",
+        
+        'figure8': f"Review this Mean Time Between Failures boxplot distribution{date_context}{service_context}. Look for services with short intervals between failures or high variability.",
+        
+        'figure9': f"Analyze these resolution stages {date_context}{service_context}. Identify any bottlenecks in the resolution process and outliers.",
+        
+        'figure10': f"Examine these status combinations {date_context}{service_context}. Look for which status combinations are most often concurrent and identify any unusual outliers per service.",
+        
+        'figure11': f"Review this daily availability analysis{date_context}{service_context}. Focus on periods of low availability and identify any concerning availability patterns.",
+        
+        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Look for services that frequently fail together and identify strong correlations between service failures.",
+        
+        'figure13': f"Examine this co-occurrence probability analysis{date_context}{service_context}. Focus on the probability of simultaneous failures and identify the most interdependent services.",
+        
+        'figure14': f"Review these service-specific failure co-occurrence patterns{date_context}{service_context}. Look for services that fail together and identify any concerning trends.",
+        
+        'figure15': f"Analyze this incident outage timeline{date_context}{service_context}. Focus on periods with multiple concurrent outages and identify any temporal patterns in outages.",
+        
+        'figure16': f"Examine these temporal autocorrelations{date_context}{service_context}. Look for significant lag correlations that might indicate systemic issues or periodic patterns.",
+        
+        'figure17': f"Analyze this incident impact distribution{date_context}{service_context}. Focus on the distribution of incident severity levels across services. Identify which services have the highest proportion of high-impact incidents. Do not mention median values."
     }
     
-    base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns."
+    base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns or trends."
     return prompts.get(plot_type, base_prompt)
 
 def analyze_plot(image_base64, plot_type=None):
@@ -452,7 +468,7 @@ def analyze_plot(image_base64, plot_type=None):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"{prompt} Provide a concise analysis in about 30-40 words, focusing only on the most significant findings. Format the response as a clear statement without any prefixes or numbering."
+                            "text": f"{prompt} Provide a concise analysis in about 50-70 words, focusing on the most significant findings. Explain any statistical or data analysis concepts. Format the response as a clear statement without any prefixes or numbering."
                         },
                         {
                             "type": "image_url",
@@ -464,7 +480,7 @@ def analyze_plot(image_base64, plot_type=None):
                     ]
                 }
             ],
-            max_tokens=100
+            max_tokens=250
         )
         
         analysis = response.choices[0].message.content.strip()
