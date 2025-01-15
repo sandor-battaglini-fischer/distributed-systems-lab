@@ -171,7 +171,6 @@ The application includes scripts to collect and update incident data from variou
    This script:
    - Collects new incidents from OpenAI, Anthropic, Character.AI, and StabilityAI
    - Updates the existing incident database with new data
-   - Runs automatically via cron job in production
    - Runs both the StabilityAI.py file and the incident_scraper_oac.py file
 
 2. **Historical Data Collection** - One-time collection of all historical incidents:
