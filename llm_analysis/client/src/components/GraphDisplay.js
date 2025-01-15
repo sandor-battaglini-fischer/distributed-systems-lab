@@ -334,9 +334,9 @@ const GraphDisplay = forwardRef((props, ref) => {
 
         // Fix service name formatting
         const services = servicePart.split('-')
-          .filter(service => service !== 'E') // Remove standalone 'E'
+          .filter(service => service !== 'E')  // DallE formatting
           .map(service => {
-            console.log('Processing service:', service); // Debug log
+            console.log('Processing service:', service); 
             
             // Handle special cases
             if (service.includes('DALL')) {
@@ -412,7 +412,6 @@ const GraphDisplay = forwardRef((props, ref) => {
       // Create plots folder in the zip
       const plotsFolder = zip.folder("plots");
       
-      // Add each plot to the zip
       for (let i = 0; i < plotIds.length; i++) {
         const figureId = plotIds[i];
         try {
@@ -420,11 +419,9 @@ const GraphDisplay = forwardRef((props, ref) => {
           const response = await fetch(plots[figureId]);
           const blob = await response.blob();
           
-          // Create filename
           const plotDetails = plotConfigs[figureId];
           const filename = `${plotDetails.title.toLowerCase().replace(/\s+/g, '_')}_${timestamp}.png`;
           
-          // Add to zip
           plotsFolder.file(filename, blob);
           
         } catch (error) {
@@ -433,7 +430,6 @@ const GraphDisplay = forwardRef((props, ref) => {
         }
       }
       
-      // Generate the zip file
       const content = await zip.generateAsync({ type: "blob" });
       
       // Create download link
@@ -479,7 +475,7 @@ const GraphDisplay = forwardRef((props, ref) => {
     }
   };
 
-  // Add new function to handle individual plot analysis
+  // Individual plot analysis
   const handleAnalyzeIndividual = async (figureId) => {
     setSelectedPlotForDialog(figureId);
     setDialogLoading(true);
