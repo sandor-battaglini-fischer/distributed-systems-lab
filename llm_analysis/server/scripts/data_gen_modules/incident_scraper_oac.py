@@ -432,6 +432,24 @@ def merge_and_deduplicate(existing_df, new_df):
     # Set StabilityAI column to 1 for StabilityAI incidents
     combined_df.loc[combined_df['provider'] == 'StabilityAI', 'StabilityAI'] = 1
     
+    # Instead of setting generic StabilityAI column
+    stability_services = {
+        'REST API': 'REST',
+        'gRPC API': 'gRPC',
+        'Stable Assistant': 'Assistant'
+    }
+    
+    # Set specific service columns for StabilityAI incidents
+    for service_col, service_name in stability_services.items():
+        if service_col not in combined_df.columns:
+            combined_df[service_col] = 0
+        # Set service column to 1 for matching incidents
+        combined_df.loc[
+            (combined_df['provider'] == 'StabilityAI') & 
+            (combined_df['Service'].str.contains(service_name, na=False)), 
+            service_col
+        ] = 1
+    
     # Ensure final dataframe has the expected column order
     return combined_df[expected_columns]
 

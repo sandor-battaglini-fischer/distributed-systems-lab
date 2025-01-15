@@ -20,10 +20,12 @@ from .analysis_modules.mttr_boxplot import analyze_mttr_boxplot
 from .analysis_modules.mtbf_boxplot import analyze_mtbf_boxplot
 from .analysis_modules.mttr_provider import analyze_mttr_provider
 from .analysis_modules.mtbf_provider import analyze_mtbf_provider
+from .analysis_modules.incident_distribution import analyze_incident_distribution
 import base64
 from openai import OpenAI
 from dotenv import load_dotenv
 import io
+import traceback
 
 # Get the absolute path to the .env file
 ENV_PATH = os.path.join(os.path.dirname(__file__), '.env')
@@ -78,7 +80,6 @@ def save_plot(fig, plot_type, start_date, end_date, services):
     start_str = pd.to_datetime(start_date).strftime('%Y%m%d')
     end_str = pd.to_datetime(end_date).strftime('%Y%m%d')
     
-
     service_names = []
     for service in services:
         provider, name = service.split(':')
@@ -92,9 +93,16 @@ def save_plot(fig, plot_type, start_date, end_date, services):
             elif name == 'Console':
                 service_names.append('Anthropic_Console')
         elif provider == 'Character.AI':
-            service_names.append('CharacterAI')
-        elif provider == 'Stability AI':
-            service_names.append('StabilityAI')
+            service_names.append('Character.AI')
+        elif provider == 'StabilityAI':
+            if name == 'REST':
+                service_names.append('StabilityAI_REST')
+            elif name == 'gRPC':
+                service_names.append('StabilityAI_gRPC')
+            elif name == 'Assistant':
+                service_names.append('StabilityAI_Assistant')
+            else:
+                service_names.append(f'StabilityAI_{name}')
         elif provider == 'Google':
             service_names.append(f'Google_{name}')
     
@@ -280,96 +288,35 @@ def generate_cooccurrence_matrix(start_date, end_date, services):
         print(f"Error generating co-occurrence matrix: {e}")
         return None
 
-def generate_all_plots(start_date, end_date, services):
-    """Generate all analysis plots"""
-    plots = {}
+# def generate_all_plots(start_date, end_date, services):
+#     plots = {}
+#     errors = []
     
-    try:
-        # Monthly Overview
-        monthly_overview_path = generate_monthly_overview(start_date, end_date, services)
-        if monthly_overview_path:
-            plots['figure1'] = monthly_overview_path
-
-        # Daily Overview
-        daily_overview_path = generate_daily_overview(start_date, end_date, services)
-        if daily_overview_path:
-            plots['figure2'] = daily_overview_path
-
-        # MTTR Analysis
-        mttr_distribution_path = generate_mttr_distribution(start_date, end_date, services)
-        if mttr_distribution_path:
-            plots['figure3'] = mttr_distribution_path
-
-        # MTTR by Provider
-        mttr_provider_path = generate_mttr_provider(start_date, end_date, services)
-        if mttr_provider_path:
-            plots['figure4'] = mttr_provider_path
-
-        # MTTR Distribution (Boxplot)
-        mttr_boxplot_path = generate_mttr_boxplot(start_date, end_date, services)
-        if mttr_boxplot_path:
-            plots['figure5'] = mttr_boxplot_path
-
-        # MTBF Analysis
-        mtbf_distribution_path = generate_mtbf_distribution(start_date, end_date, services)
-        if mtbf_distribution_path:
-            plots['figure6'] = mtbf_distribution_path
-
-        # MTBF by Provider
-        mtbf_provider_path = generate_mtbf_provider(start_date, end_date, services)
-        if mtbf_provider_path:
-            plots['figure7'] = mtbf_provider_path
-
-        # MTBF Distribution (Boxplot)
-        mtbf_boxplot_path = generate_mtbf_boxplot(start_date, end_date, services)
-        if mtbf_boxplot_path:
-            plots['figure8'] = mtbf_boxplot_path
-
-        # Resolution Activities
-        resolution_activities_path = generate_resolution_activities(start_date, end_date, services)
-        if resolution_activities_path:
-            plots['figure9'] = resolution_activities_path
-
-        # Status Combinations
-        status_combinations_path = generate_status_combinations(start_date, end_date, services)
-        if status_combinations_path:
-            plots['figure10'] = status_combinations_path
-
-        # Service Availability
-        daily_availability_path = generate_daily_availability(start_date, end_date, services)
-        if daily_availability_path:
-            plots['figure11'] = daily_availability_path
-
-        # Service Co-occurrence
-        cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
-        if cooccurrence_matrix_path:
-            plots['figure12'] = cooccurrence_matrix_path
-
-        # Co-occurrence Probability
-        cooccurrence_probability_path = generate_cooccurrence_probability(start_date, end_date, services)
-        if cooccurrence_probability_path:
-            plots['figure13'] = cooccurrence_probability_path
-
-        # Service Incidents
-        service_incidents_path = generate_service_incidents(start_date, end_date, services)
-        if service_incidents_path:
-            plots['figure14'] = service_incidents_path
-
-        # Incident Outage Timeline
-        incident_outage_path = generate_incident_outage(start_date, end_date, services)
-        if incident_outage_path:
-            plots['figure15'] = incident_outage_path
-
-        # Autocorrelations
-        autocorrelations_path = generate_autocorrelations(start_date, end_date, services)
-        if autocorrelations_path:
-            plots['figure16'] = autocorrelations_path
-
-        return plots
-
-    except Exception as e:
-        print(f"Error generating plots: {e}")
-        return plots
+#     try:
+#         # Daily Availability
+#         try:
+#             daily_availability_path = generate_daily_availability(start_date, end_date, services)
+#             if daily_availability_path:
+#                 plots['figure11'] = daily_availability_path
+#         except Exception as e:
+#             print(f"Error generating daily availability: {str(e)}")
+#             errors.append(f"Daily availability failed: {str(e)}")
+            
+#         # Service Co-occurrence
+#         try:
+#             cooccurrence_matrix_path = generate_cooccurrence_matrix(start_date, end_date, services)
+#             if cooccurrence_matrix_path:
+#                 plots['figure12'] = cooccurrence_matrix_path
+#         except Exception as e:
+#             print(f"Error generating co-occurrence matrix: {str(e)}")
+#             errors.append(f"Co-occurrence matrix failed: {str(e)}")
+            
+        
+#     except Exception as e:
+#         print(f"Error in generate_all_plots: {str(e)}")
+#         errors.append(f"Overall plot generation failed: {str(e)}")
+        
+#     return plots, errors
 
 # Add individual generate functions for each plot type
 def generate_mttr_boxplot(start_date, end_date, services):
@@ -419,6 +366,19 @@ def generate_mtbf_provider(start_date, end_date, services):
     except Exception as e:
         print(f"Error generating MTBF provider analysis: {e}")
         return None
+    
+def generate_incident_distribution(start_date, end_date, services):
+    """Generate incident distribution analysis"""
+    try:
+        cleanup_old_plots()
+        fig = analyze_incident_distribution(start_date, end_date, services)
+        if fig:
+            return save_plot(fig, 'incident_distribution', start_date, end_date, services)
+        return None
+    except Exception as e:
+        print(f"Error generating incident distribution: {e}")
+        traceback.print_exc()
+        return None
 
 def encode_image_to_base64(fig):
     """Convert matplotlib figure to base64 string"""
@@ -450,25 +410,42 @@ def get_plot_specific_prompt(plot_type, start_date=None, end_date=None, services
             service_context = f" for {service_list}"
 
     prompts = {
-        'figure1': f"Analyze this day-of-week distribution plot{date_context}{service_context}. Focus on peak incident days and any provider-specific patterns.",
-        'figure2': f"Analyze this MTTR (Mean Time To Recovery) plot{date_context}{service_context}. Identify services with concerning recovery times and any outliers.",
-        'figure3': f"Analyze this provider-based MTTR plot{date_context}{service_context}. Compare provider performance and highlight significant differences.",
-        'figure4': f"Review this MTTR distribution boxplot{date_context}{service_context}. Note any concerning spreads or outliers in recovery times.",
-        'figure5': f"Analyze this MTBF (Mean Time Between Failures) plot{date_context}{service_context}. Identify services with concerning failure frequencies.",
-        'figure6': f"Analyze this provider-based MTBF plot{date_context}{service_context}. Compare provider reliability and highlight significant patterns.",
-        'figure7': f"Review this MTBF distribution boxplot{date_context}{service_context}. Note any concerning patterns in failure intervals.",
-        'figure8': f"Analyze these resolution activities{date_context}{service_context}. Identify bottlenecks or inefficiencies in the resolution process.",
-        'figure9': f"Analyze these status combinations{date_context}{service_context}. Highlight unusual transition patterns or process inefficiencies.",
-        'figure10': f"Review this service availability plot{date_context}{service_context}. Identify SLA breaches and availability trends.",
-        'figure11': f"Analyze these temporal patterns{date_context}{service_context}. Identify peak incident times and monthly trends.",
-        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Identify significant service dependencies or correlations.",
-        'figure13': f"Analyze this incident outage timeline{date_context}{service_context}. Identify outage patterns and trends over time.",
-        'figure14': f"Review this daily overview plot{date_context}{service_context}. Identify daily trends and patterns in incident activity.",
-        'figure15': f"Analyze this co-occurrence probability plot{date_context}{service_context}. Identify significant service dependencies or correlations.",
-        'figure16': f"Analyze these service incidents{date_context}{service_context}. Identify patterns, trends, and provider-specific incident characteristics."
+        'figure1': f"Analyze this monthly incident distribution{date_context}{service_context}. Focus on days with highest incident counts and identify any weekly patterns or trends.",
+        
+        'figure2': f"Review this daily incident pattern analysis{date_context}{service_context}. Look for hours of the day with elevated incident rates and identify any common patterns.",
+        
+        'figure3': f"Examine this MTTR (Mean Time To Recovery) distribution{date_context}{service_context}. The top plot shows the cumulative distribution functions per service and the bottom plot shows the percentage of incidents by service. Focus on the differences betwen services, the faster (left shifted CDF) and slower (right shifted CDF) services, and any patterns.",
+        
+        'figure4': f"Analyze this provider-level Mean Time To Recovery comparison{date_context}{service_context}. Compare recovery times across different providers and identify which providers have faster (left shifted CDF) and slower (right shifted CDF) recovery times.",
+        
+        'figure5': f"Review this Mean Time To Recovery boxplot distribution{date_context}{service_context}. Look for services with high median recovery times or large spreads in their recovery times.",
+        
+        'figure6': f"Examine this MTBF (Mean Time Between Failures) distribution{date_context}{service_context}. The top plot shows the cumulative distribution functions per service and the bottom plot shows the percentage of incidents by service. Focus on the differences betwen services, the faster (left shifted CDF) and slower (right shifted CDF) services, and any patterns.",
+        
+        'figure7': f"Analyze this provider-based Mean Time Between Failures comparison{date_context}{service_context}. Compare times between failures across different providers and identify which providers have faster (left shifted CDF) and slower (right shifted CDF) times.",
+        
+        'figure8': f"Review this Mean Time Between Failures boxplot distribution{date_context}{service_context}. Look for services with short intervals between failures or high variability.",
+        
+        'figure9': f"Analyze these resolution stages {date_context}{service_context}. Identify any bottlenecks in the resolution process and outliers.",
+        
+        'figure10': f"Examine these status combinations {date_context}{service_context}. Look for which status combinations are most often concurrent and identify any unusual outliers per service.",
+        
+        'figure11': f"Review this daily availability analysis{date_context}{service_context}. Focus on periods of low availability and identify any concerning availability patterns.",
+        
+        'figure12': f"Analyze this service co-occurrence matrix{date_context}{service_context}. Look for services that frequently fail together and identify strong correlations between service failures.",
+        
+        'figure13': f"Examine this co-occurrence probability analysis{date_context}{service_context}. Focus on the probability of simultaneous failures and identify the most interdependent services.",
+        
+        'figure14': f"Review these service-specific failure co-occurrence patterns{date_context}{service_context}. Look for services that fail together and identify any concerning trends.",
+        
+        'figure15': f"Analyze this incident outage timeline{date_context}{service_context}. Focus on periods with multiple concurrent outages and identify any temporal patterns in outages.",
+        
+        'figure16': f"Examine these temporal autocorrelations{date_context}{service_context}. Look for significant lag correlations that might indicate systemic issues or periodic patterns.",
+        
+        'figure17': f"Analyze this incident impact distribution{date_context}{service_context}. Focus on the distribution of incident severity levels across services. Identify which services have the highest proportion of high-impact incidents. Do not mention median values."
     }
     
-    base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns."
+    base_prompt = f"Analyze this plot{date_context}{service_context} and identify significant patterns or trends."
     return prompts.get(plot_type, base_prompt)
 
 def analyze_plot(image_base64, plot_type=None):
@@ -491,7 +468,7 @@ def analyze_plot(image_base64, plot_type=None):
                     "content": [
                         {
                             "type": "text",
-                            "text": f"{prompt} Provide a concise analysis in about 30-40 words, focusing only on the most significant findings. Format the response as a clear statement without any prefixes or numbering."
+                            "text": f"{prompt} Provide a concise analysis in about 50-70 words, focusing on the most significant findings. Explain any statistical or data analysis concepts. Format the response as a clear statement without any prefixes or numbering."
                         },
                         {
                             "type": "image_url",
@@ -503,7 +480,7 @@ def analyze_plot(image_base64, plot_type=None):
                     ]
                 }
             ],
-            max_tokens=100
+            max_tokens=250
         )
         
         analysis = response.choices[0].message.content.strip()
@@ -603,5 +580,7 @@ def summarize_analyses(analyses, start_date=None, end_date=None, services=None):
             "success": False,
             "error": f"Summary failed: {str(e)}"
         }
+
+
 
 os.makedirs(PLOTS_DIR, exist_ok=True) 

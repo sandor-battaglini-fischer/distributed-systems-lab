@@ -11,7 +11,7 @@ import { AnalysisProvider } from './context/AnalysisContext';
 import ConnectionStatus from './components/ConnectionStatus';
 import FailureAnalysis from './pages/FailureAnalysis';
 import DataTable from './pages/DataTable';
-
+import PredictiveAnalysis from './pages/PredictiveAnalysis';
 function App() {
   const [mode, setMode] = useState('light');
 
@@ -35,6 +35,7 @@ function App() {
               <Route path="/failure-analysis" element={<FailureAnalysis />} />
               <Route path="/about" element={<About />} />
               <Route path="/data" element={<DataTable />} />
+              <Route path="/predictive-analysis" element={<PredictiveAnalysis />} />
             </Routes>
           </Layout>
         </Router>

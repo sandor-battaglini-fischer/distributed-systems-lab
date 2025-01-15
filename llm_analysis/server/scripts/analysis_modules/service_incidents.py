@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from .utils import load_and_prepare_data
+import traceback
 
 def analyze_service_incidents(start_date, end_date, services):
     """
@@ -101,9 +102,10 @@ def analyze_service_incidents(start_date, end_date, services):
         impact_range_percent = impact_range_df.T.div(impact_range_df.T.sum(axis=1), axis=0) * 100
         impact_range_percent = impact_range_percent.round(2)
 
-        figures = {}
-
-        # Plot OpenAI service combinations
+        # Create a single figure with subplots
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 16))
+        
+        # Plot OpenAI data on first subplot
         service_labels = {
             'API-OpenAI': 'O1',
             'ChatGPT': 'O2',
@@ -146,7 +148,7 @@ def analyze_service_incidents(start_date, end_date, services):
         plt.xlabel("Number of Incidents", fontsize=26)
 
         label_text = "O1: API-OpenAI\nO2: ChatGPT\nO3: DALL-E\nO4: Playground"
-        plt.text(
+        ax1.text(
             0.99, 0.01, label_text,
             ha='right', va='bottom',
             transform=plt.gca().transAxes,
@@ -154,10 +156,7 @@ def analyze_service_incidents(start_date, end_date, services):
             bbox=dict(facecolor='white', alpha=0.9)
         )
 
-        plt.tight_layout()
-        figures['openai'] = plt.gcf()
-
-        # Plot Anthropic service combinations
+        # Plot Anthropic data on second subplot  
         service_labels = {
             'API-Anthropic': 'A1',
             'Claude': 'A2',
@@ -190,7 +189,7 @@ def analyze_service_incidents(start_date, end_date, services):
         plt.xlabel("Number of Incidents", fontsize=26)
 
         label_text = "A1: API-Anthropic\nA2: Claude\nA3: Console"
-        plt.text(
+        ax2.text(
             0.99, 0.01, label_text,
             ha='right', va='bottom',
             transform=plt.gca().transAxes,
@@ -248,5 +247,6 @@ def analyze_service_incidents(start_date, end_date, services):
         return figures
 
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        raise 
+        print(f"Error in service incidents analysis: {str(e)}")
+        traceback.print_exc()
+        return None 

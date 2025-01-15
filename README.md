@@ -1,49 +1,21 @@
-# Analysis and Modeling of LLM Service Failures
+# Analysing failures of Large Language Model services
+*FAILS: An automated analysis tool from a Distributed Systems perspective*
 
-Lab Assignment for "Distributed Systems", Vrije Universiteit 2024
+**Lab Assignment for "Distributed Systems", Vrije Universiteit 2024**
 
-## To Do
+---
 
-Interface:
+The **Framework for Analysis of Incidents and Outages of LLM Services** (FAILS) is in the [llm_analysis](llm_analysis) folder, with instruction on how to run it.
 
-- (S) ~~Improve mobile view, color palette, components~~
-- (S) ~~Add JS plotting framework for interactive plots w/ python/matplotlib download~~
+By [Nishanthi Srinivasan](mailto:n.srinivasan@student.vu.nl), [Bálint László Szarvas](mailto:b.l.szarvas@student.vu.nl) and [Sándor Battaglini-Fischer](mailto:s.battaglini-fischer@student.vu.nl).
 
-Data collection:
+Many thanks to [Xiaoyu Chu](mailto:x.chu@vu.nl) and [Prof. Dr. Ir. Alexandru Iosup](a.iosup@vu.nl) for the support!
 
-- (N) ~~Integrate Stability AI collection with the rest (same CSV)~~
-- (S) Configure a Cronjob to run in the background
-- ~~Check if Google AI has usage data, if not maybe third party data collection option~~
-- ~~If we have time: other services (?)~~
-- Outages StabilityAI (N) and rest (S)
+---
 
-Data analysis:
+### Some screenshots of the interface:
 
-- (B) Improve plots, make sure it is consistent with what their repo had
-- (S) See what additional research/analyis we can do
-- Ideas:
-  - (S) ~~use LLM to analyse the results from the plots and:~~
-    - give a user profile based suggestion (questionaire, what time they use llms -> which one is best)
-    - use RAG to train on course material (local inference)
-    - Prompt engineer based on previous knowledge
-  - API vs GUI version (ChatGPT/Claude) analysis (hypothesis: API more stable)
-  - (S) Geographical distribution of outages from downdetector (might be too hard to automate) - Explain
-  - (B) Predictive failure model:
-    - Time series modelling (when will failures occur)
-    - How fast will failures be resolved
-  - (S) ~~Distribution of Incident Impact Level~~ (and then generalise to a new metric, new taxonomy?)
-  - Why do the failures occur more often for some services? Company infrastructure, goals, tech stack, funding, computational resources, etc. How would we improve the service as a Distributed System?
-  - Assessment of the quality of status reporting (per service provider)
-
-General:
-
-- Document what we have done (design process)
-- Document time spent etc
-- Integrate material from course:
-  - How do LLM services balance workload/scheduling
-  - What about consistency handling?
-- Start writing the report and PPT (?)
-
-- ~~(S) labs to DALL-E~~
-- ~~(S) Add exact StabAI services to csv~~
-- (S) ASK Outage is Incident? Can cut down csv? Mark in CSV table?
+<img width="2056" alt="mainpage" src="https://github.com/user-attachments/assets/e31dfd2c-54d6-4a3b-ba23-d1c8fd5fb1bc" />
+<img width="2056" alt="datatable" src="https://github.com/user-attachments/assets/57fe0198-43fd-41ae-93f5-53c7fc3788bd" />
+<img width="2056" alt="chatbot" src="https://github.com/user-attachments/assets/0d927fd0-bffa-4362-9fd2-9c5f2dc609f8" />
+<img width="2056" alt="llmanalysis" src="https://github.com/user-attachments/assets/9ebb9e69-0444-41be-888c-c816642895f6" />

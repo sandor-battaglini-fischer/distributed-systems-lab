@@ -74,7 +74,7 @@ function Dashboard() {
     'OpenAI': ['API', 'ChatGPT', 'DALL-E', 'Playground'],
     'Anthropic': ['API', 'Claude', 'Console'],
     'Character.AI': ['Character.AI'],
-    'Stability AI': ['Stable Diffusion'],
+    'Stability AI': ['REST API', 'gRPC API', 'Stable Assistant'],
     // 'Google': ['Gemini', 'Gemini API', 'Bard']
   };
 
@@ -93,8 +93,14 @@ function Dashboard() {
       case provider === 'Character.AI' && service === 'Character.AI':
         serviceId = 'Character.AI:Character.AI';
         break;
-      case provider === 'Stability AI' && service === 'Stable Diffusion':
-        serviceId = 'StabilityAI:StabilityAI';
+      case provider === 'Stability AI' && service === 'REST API':
+        serviceId = 'StabilityAI:REST';
+        break;
+      case provider === 'Stability AI' && service === 'gRPC API':
+        serviceId = 'StabilityAI:gRPC';
+        break;
+      case provider === 'Stability AI' && service === 'Stable Assistant':
+        serviceId = 'StabilityAI:Assistant';
         break;
       case provider === 'Google':
         serviceId = `Google:${service}`;
@@ -125,8 +131,14 @@ function Dashboard() {
       case provider === 'Character.AI' && service === 'Character.AI':
         serviceId = 'Character.AI:Character.AI';
         break;
-      case provider === 'Stability AI' && service === 'Stable Diffusion':
-        serviceId = 'StabilityAI:StabilityAI';
+      case provider === 'Stability AI' && service === 'REST API':
+        serviceId = 'StabilityAI:REST';
+        break;
+      case provider === 'Stability AI' && service === 'gRPC API':
+        serviceId = 'StabilityAI:gRPC';
+        break;
+      case provider === 'Stability AI' && service === 'Stable Assistant':
+        serviceId = 'StabilityAI:Assistant';
         break;
       case provider === 'Google':
         serviceId = `Google:${service}`;
@@ -163,8 +175,12 @@ function Dashboard() {
           return 'Anthropic:Console';
         case provider === 'Character.AI' && service === 'Character.AI':
           return 'Character.AI:Character.AI';
-        case provider === 'Stability AI' && service === 'Stable Diffusion':
-          return 'StabilityAI:Stable Diffusion';
+        case provider === 'Stability AI' && service === 'REST API':
+          return 'StabilityAI:REST';
+        case provider === 'Stability AI' && service === 'gRPC API':
+          return 'StabilityAI:gRPC';
+        case provider === 'Stability AI' && service === 'Stable Assistant':
+          return 'StabilityAI:Assistant';
         case provider === 'Google':
           return `Google:${service}`;
         default:

@@ -13,44 +13,44 @@ import PlotAnalysis from './PlotAnalysis';
 
 const plotConfigs = {
   figure1: {
-    title: 'Monthly Overview',
-    description: 'Monthly distribution of incidents across services'
+    title: 'Weekly Overview',
+    description: 'Distribution of incidents across services per day of the week'
   },
   figure2: {
     title: 'Daily Overview',
-    description: 'Daily patterns of incidents across services'
+    description: 'Distribution of incidents across services per hour of day'
   },
   figure3: {
-    title: 'MTTR Distribution',
-    description: 'Mean Time To Recovery distribution analysis'
+    title: 'Mean Time To Recovery by Service',
+    description: 'Mean Time To Recovery cumulative distribution and percentage of incidents'
   },
   figure4: {
-    title: 'MTTR by Provider',
-    description: 'Mean Time To Recovery comparison across providers'
+    title: 'Mean Time To Recovery by Provider',
+    description: 'Mean Time To Recovery cumulative distribution comparison across providers'
   },
   figure5: {
-    title: 'MTTR Boxplot',
+    title: 'Mean Time To Recovery Boxplot',
     description: 'Detailed MTTR distribution with service-level boxplots'
   },
   figure6: {
-    title: 'MTBF Distribution',
-    description: 'Mean Time Between Failures distribution analysis'
+    title: 'Mean Time Between Failures by Service',
+    description: 'Mean Time Between Failures cumulative distribution and percentage of incidents'
   },
   figure7: {
-    title: 'MTBF by Provider',
-    description: 'Mean Time Between Failures comparison across providers'
+    title: 'Mean Time Between Failures by Provider',
+    description: 'Mean Time Between Failures cumulative distribution comparison across providers'
   },
   figure8: {
-    title: 'MTBF Boxplot',
+    title: 'Mean Time Between Failures Boxplot',
     description: 'Detailed MTBF distribution with service-level boxplots'
   },
   figure9: {
-    title: 'Resolution Activities',
-    description: 'Analysis of incident resolution activities'
+    title: 'Resolution Stages',
+    description: 'Duration and Distribution of Resolution Stages'
   },
   figure10: {
     title: 'Status Combinations',
-    description: 'Analysis of incident status transition patterns'
+    description: 'Concurrent status combinations'
   },
   figure11: {
     title: 'Daily Availability',
@@ -58,15 +58,15 @@ const plotConfigs = {
   },
   figure12: {
     title: 'Service Co-occurrence',
-    description: 'Analysis of simultaneous service incidents'
+    description: 'Co-occurrence matrix of simultaneous service incidents'
   },
   figure13: {
     title: 'Co-occurrence Probability',
-    description: 'Probability analysis of service co-occurrences'
+    description: 'Probability matrix of service co-occurrences'
   },
   figure14: {
-    title: 'Service Incidents',
-    description: 'Analysis of service-specific incident patterns'
+    title: 'Per Service Co-occurrence',
+    description: 'Co-occurrence of failures across services for each provide'
   },
   figure15: {
     title: 'Incident Outage Timeline',
@@ -75,6 +75,10 @@ const plotConfigs = {
   figure16: {
     title: 'Autocorrelations',
     description: 'Temporal autocorrelation analysis of incidents'
+  },
+  figure17: {
+    title: 'Incident Impact Distribution',
+    description: 'Distribution of incident impact levels across providers'
   }
 };
 
@@ -138,7 +142,7 @@ const formatServiceName = (serviceName) => {
         case 'Stable Diffusion':
           return `StabilityAI ${service}`;
         default:
-          return `StabilityAI ${service}`; // Fallback for any new services
+          return `StabilityAI ${service}`; // Fallback 
       }
     }
     default:
@@ -236,13 +240,15 @@ const PlotAnalysisDialog = ({ open, onClose, plotTitle, analysis, loading, error
           </Alert>
         ) : (
           <Typography 
-            variant="body1"
-            sx={{
-              whiteSpace: 'pre-line',
-              '& strong': {
-                fontWeight: 600,
-                color: 'primary.main',
-              },
+            variant="body2" 
+            sx={{ 
+                whiteSpace: 'pre-line',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                '& strong': {
+                  fontWeight: 600,
+                  color: 'primary.main',
+                },
             }}
           >
             {analysis}
@@ -278,6 +284,13 @@ const GraphDisplay = forwardRef((props, ref) => {
     extractPlotDetails();
   }, [plots]);
 
+  useEffect(() => {
+    if (error) {
+      // Show error message but don't clear plots
+      setError(error);
+    }
+  }, [error]);
+
   React.useImperativeHandle(ref, () => ({
     refreshPlots: (newPlots) => {
       setPlots(newPlots);
@@ -308,7 +321,7 @@ const GraphDisplay = forwardRef((props, ref) => {
         console.log('Processing filename:', filename);
         
         const [mainPart, servicePart, timestamp] = filename.split('__');
-        console.log('Main part:', mainPart);
+        console.log('Service part:', servicePart);
         
         // Format is: plotType_YYYYMMDD_YYYYMMDD
         const dateMatch = mainPart.match(/.*?_(\d{8})_(\d{8})/);
@@ -318,25 +331,35 @@ const GraphDisplay = forwardRef((props, ref) => {
         }
         
         const [, startDate, endDate] = dateMatch;
-        console.log('Extracted dates:', { startDate, endDate });
-
-        // Validate dates before formatting
-        if (startDate?.length !== 8 || endDate?.length !== 8) {
-          console.error('Invalid date format:', { startDate, endDate });
-          return;
-        }
 
         // Fix service name formatting
         const services = servicePart.split('-')
-          .filter(service => service !== 'E') // Remove standalone 'E'
+          .filter(service => service !== 'E')  // DallE formatting
           .map(service => {
-            // Handle the special case for DALL-E
+            console.log('Processing service:', service); 
+            
+            // Handle special cases
             if (service.includes('DALL')) {
               return 'OpenAI DALL·E';
             }
+            
+            // Handle Character.AI (try different possible formats)
+            if (service.toLowerCase().includes('character')) {
+              return 'Character.AI';
+            }
+            
+            // Handle StabilityAI (try different possible formats)
+            if (service.toLowerCase().includes('stability')) {
+              const serviceParts = service.split('_');
+              const stabilityService = serviceParts.length > 1 ? serviceParts[1] : 'REST';
+              return `StabilityAI ${stabilityService}`;
+            }
+            
             // Handle other services
             return formatServiceName(service.replace('_', ':'));
           });
+
+        console.log('Processed services:', services); // Debug log
 
         details[figureId] = {
           startDate: formatDate(startDate),
@@ -389,7 +412,6 @@ const GraphDisplay = forwardRef((props, ref) => {
       // Create plots folder in the zip
       const plotsFolder = zip.folder("plots");
       
-      // Add each plot to the zip
       for (let i = 0; i < plotIds.length; i++) {
         const figureId = plotIds[i];
         try {
@@ -397,11 +419,9 @@ const GraphDisplay = forwardRef((props, ref) => {
           const response = await fetch(plots[figureId]);
           const blob = await response.blob();
           
-          // Create filename
           const plotDetails = plotConfigs[figureId];
           const filename = `${plotDetails.title.toLowerCase().replace(/\s+/g, '_')}_${timestamp}.png`;
           
-          // Add to zip
           plotsFolder.file(filename, blob);
           
         } catch (error) {
@@ -410,7 +430,6 @@ const GraphDisplay = forwardRef((props, ref) => {
         }
       }
       
-      // Generate the zip file
       const content = await zip.generateAsync({ type: "blob" });
       
       // Create download link
@@ -456,7 +475,7 @@ const GraphDisplay = forwardRef((props, ref) => {
     }
   };
 
-  // Add new function to handle individual plot analysis
+  // Individual plot analysis
   const handleAnalyzeIndividual = async (figureId) => {
     setSelectedPlotForDialog(figureId);
     setDialogLoading(true);
@@ -541,12 +560,12 @@ const GraphDisplay = forwardRef((props, ref) => {
     );
   }
 
-  // Only show plots section if there are plots
-  if (Object.keys(plots).length === 0) {
-    return null;  // Return nothing if no plots are generated
-  }
-
   const allFigures = Object.keys(plotConfigs);
+
+  // Only show plots section if there are plots or we're loading
+  if (Object.keys(plots).length === 0 && !loading && !error) {
+    return null;  // Return nothing only if no plots AND not loading AND no error
+  }
 
   // Define grid layout configurations
   const getGridConfig = (figureId) => {
@@ -614,6 +633,10 @@ const GraphDisplay = forwardRef((props, ref) => {
       figure16: { // Autocorrelations
         gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
         minHeight: { xs: '400px', sm: '500px' }
+      },
+      figure17: { // Incident Distribution
+        gridColumn: { xs: 'span 12', sm: 'span 12', md: 'span 12' },
+        minHeight: { xs: '400px', sm: '500px' }
       }
     };
     return configs[figureId] || {
@@ -623,7 +646,7 @@ const GraphDisplay = forwardRef((props, ref) => {
   };
 
   return (
-    <Fade in={Object.keys(plots).length > 0}>
+    <Fade in={Object.keys(plots).length > 0 || loading || error}>
       <Box sx={{ p: 3 }}>
         {Object.keys(plots).length > 0 && (
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
@@ -656,8 +679,6 @@ const GraphDisplay = forwardRef((props, ref) => {
           gap: 3,
         }}>
           {allFigures.map((figureId) => {
-            if (!plots[figureId]) return null;  // Don't render empty plot boxes
-            
             const gridConfig = getGridConfig(figureId);
             
             return (
@@ -768,6 +789,7 @@ const GraphDisplay = forwardRef((props, ref) => {
                           height: '100%',
                           width: '100%',
                           display: 'flex', 
+                          flexDirection: 'column',
                           justifyContent: 'center', 
                           alignItems: 'center',
                           bgcolor: 'background.default',
@@ -776,9 +798,20 @@ const GraphDisplay = forwardRef((props, ref) => {
                           opacity: 0.7
                         }}
                       >
-                        <Typography color="text.secondary" align="center">
-                          Select services and run analysis to generate visualization
-                        </Typography>
+                        {error ? (
+                          <>
+                            <Typography color="error" align="center" gutterBottom>
+                              Error generating plot
+                            </Typography>
+                            <Typography color="text.secondary" align="center" variant="body2">
+                              {error}
+                            </Typography>
+                          </>
+                        ) : (
+                          <Typography color="text.secondary" align="center">
+                            Error with the generation of this plot. Please try refreshing the analysis.
+                          </Typography>
+                        )}
                       </Box>
                     )}
                   </Box>

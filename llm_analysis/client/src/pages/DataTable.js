@@ -78,7 +78,8 @@ const DataTable = () => {
             px: 1,
             py: 0.5,
             borderRadius: 1,
-            display: 'inline-block'
+            display: 'inline-block',
+            textAlign: 'center'
           }} 
           variant="body2"
         >
@@ -305,7 +306,7 @@ const DataTable = () => {
             {loading && <CircularProgress size={20} sx={{ ml: 1 }} />}
           </Typography>
           
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Tooltip title="Refresh Data">
               <IconButton 
                 onClick={fetchData}
@@ -321,6 +322,7 @@ const DataTable = () => {
                 <RefreshIcon />
               </IconButton>
             </Tooltip>
+            
             <Button
               variant="outlined"
               startIcon={<DownloadIcon />}

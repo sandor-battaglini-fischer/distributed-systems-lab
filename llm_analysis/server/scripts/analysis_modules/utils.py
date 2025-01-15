@@ -45,7 +45,10 @@ def get_service_mapping_outage():
         'Anthropic:API': 'api.anthropic.com',
         'Anthropic:Claude': 'claude.ai',
         'Anthropic:Console': 'console.anthropic.com',
-        'Character.AI:Character.AI': 'character.ai'
+        'Character.AI:Character.AI': 'character.ai',
+        'StabilityAI:REST': 'REST API',
+        'StabilityAI:gRPC': 'gRPC API',
+        'StabilityAI:Assistant': 'Stable Assistant'
     }
 
 
@@ -61,27 +64,74 @@ def load_and_prepare_data(start_date, end_date, timestamp_columns=None):
     Returns:
         Preprocessed DataFrame
     """
+    print(f"\nLoading data...")
+    print(f"Requested date range: {start_date} to {end_date}")
+    
     # Convert dates to UTC timezone
     start_date = pd.to_datetime(start_date).tz_localize('UTC')
     end_date = pd.to_datetime(end_date).tz_localize('UTC')
+    print(f"Converted to UTC: {start_date} to {end_date}")
     
     # Read data
     data_path = get_data_path_incident()
-    if not os.path.exists(data_path):
-        raise FileNotFoundError(f"Data file not found at {data_path}")
-        
+    print(f"Reading data from: {data_path}")
+    
     df = pd.read_csv(data_path)
+    print(f"Initial data loaded: {len(df)} rows")
     
     # Convert timestamp columns
     if timestamp_columns:
         df = safe_convert_timezone(df, timestamp_columns)
+        print(f"Timestamps converted to UTC")
     
     # Filter by date range using investigating_timestamp
-    if 'start_timestamp' in df.columns:
-        df = df[(df['start_timestamp'] >= start_date) & 
-                (df['close_timestamp'] <= end_date)]
-        
-                
+    if 'investigating_timestamp' in df.columns:
+        before_filter = len(df)
+        df = df[(df['investigating_timestamp'] >= start_date) & 
+                (df['investigating_timestamp'] <= end_date)]
+        print(f"Date filtering: {before_filter} -> {len(df)} rows")
+    
+    # Initialize service columns if they don't exist
+    service_columns = list(get_service_mapping().values())
+    for service in service_columns:
+        if service not in df.columns:
+            df[service] = 0
+    
+    # Add preprocessing for OpenAI DALL-E incidents
+    openai_mask = df['provider'] == 'openai'
+    if openai_mask.any():
+        for idx, row in df[openai_mask].iterrows():
+            title = str(row['Incident_Title']).lower()
+            desc = str(row.get('investigating_description', '')).lower()
+            
+            # Check for DALL-E related keywords
+            if any(keyword in title or keyword in desc for keyword in 
+                  ['dall-e', 'dall e', 'dalle', 'image generation', 'image creation']):
+                df.loc[idx, 'DALL-E'] = 1
+    
+    # No need for StabilityAI incident detection - the columns already exist
+    # Just ensure the columns are numeric
+    stability_columns = ['REST API', 'gRPC API', 'Stable Assistant']
+    for col in stability_columns:
+        if col in df.columns:
+            df[col] = df[col].fillna(0).astype(float)
+    
+    # Convert any string 'True'/'False' to 1/0 in service columns
+    for col in service_columns:
+        if col in df.columns:
+            if df[col].dtype == object:
+                df[col] = df[col].map({'True': 1, 'False': 0, '1': 1, '0': 0}).fillna(0)
+            df[col] = df[col].astype(float)
+    
+    # Add debug info
+    print("\nService columns after preprocessing:")
+    for col in service_columns:
+        if col in df.columns:
+            incident_count = df[col].sum()
+            print(f"{col}: {incident_count} incidents")
+        else:
+            print(f"{col}: column not found")
+    
     return df
 
 
