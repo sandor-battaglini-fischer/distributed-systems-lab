@@ -48,18 +48,16 @@ def analyze_impact_levels(df, output_dir):
     plt.style.use('default')
     sns.set_theme(style="whitegrid")
     plt.rcParams.update({
-        "text.usetex": True,
-        "font.family": "serif",
-        "font.serif": ["Computer Modern Roman"],
-        "font.size": 18,
-        "axes.labelsize": 18,
-        "axes.titlesize": 20,
-        "legend.fontsize": 16,
-        "xtick.labelsize": 18,
-        "ytick.labelsize": 18,
+        "font.family": "Helvetica",
+        "font.size": 26,
+        "axes.labelsize": 26,
+        "axes.titlesize": 26,
+        "legend.fontsize": 26,
+        "xtick.labelsize": 26,
+        "ytick.labelsize": 26,
     })
     
-    fig, ax = plt.subplots(figsize=(16, 10))
+    fig, ax = plt.subplots(figsize=(14, 8))
     
     sns.boxplot(
         data=df,
@@ -79,8 +77,9 @@ def analyze_impact_levels(df, output_dir):
         cut=0.8,
         density_norm='width',
         inner=None,
-        alpha=0.3,
-        zorder=1
+        alpha=0.5,
+        zorder=1,
+        color='cornflowerblue'
     )
     
     providers = df['provider'].unique()
@@ -104,9 +103,10 @@ def analyze_impact_levels(df, output_dir):
                     x_positions,
                     [impact_level] * n_points,
                     color='darkred',
-                    alpha=0.5,
-                    s=40,
-                    zorder=3
+                    marker='o',
+                    alpha=0.6,
+                    edgecolor='black',
+                    linewidth=0.5
                 )
     
     legend_elements = [
@@ -129,10 +129,10 @@ def analyze_impact_levels(df, output_dir):
               loc='center left',
               bbox_to_anchor=(1.02, 0.5),
               title='Plot Elements',
-              title_fontsize=18,
+              title_fontsize=26,
               framealpha=0.9,
               edgecolor='black',
-              fontsize=16)
+              fontsize=26)
     
     plt.tight_layout()
     plt.subplots_adjust(right=0.85, top=0.88, bottom=0.12, left=0.15)
@@ -140,14 +140,14 @@ def analyze_impact_levels(df, output_dir):
     plt.xticks(range(len(providers)), 
                [get_provider_display_name(p) for p in providers],
                rotation=0,
-               fontsize=18)
+               fontsize=26)
     
     timeframe_str = f"{timeframe_start.strftime('%B %Y')} - {timeframe_end.strftime('%B %Y')}"
     
     # fig.suptitle(r'$\mathrm{Distribution\;of\;Incident\;Impact\;Levels\;and\;Analysis\;Period:\; ' + timeframe_str + '}$', y=0.95, x=0.5, fontsize=24, ha='center')
     
-    plt.xlabel(r'$\mathrm{Provider}$', fontsize=20, labelpad=15)
-    plt.ylabel(r'$\mathrm{Impact\;Level}$', fontsize=20, labelpad=15)
+    ax.set_xlabel('')  # Remove x-axis label
+    ax.set_ylabel('')  # Remove y-axis label
     
     impact_colors = {}
     for level in range(5):
@@ -163,9 +163,9 @@ def analyze_impact_levels(df, output_dir):
                 transform=ax.get_yaxis_transform(),
                 ha='right',
                 va='center',
-                color=impact_colors[i],
+                color='black',
                 fontweight='bold',
-                fontsize=18)
+                fontsize=26)
     
     ax.set_yticklabels([])
     
