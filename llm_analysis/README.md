@@ -7,8 +7,8 @@ This project is a web application built using React for the frontend and Flask f
 ### Prerequisites
 
 - Node.js and npm
-- Python 3.x
-- OpenAI API key (for AI plot analysis feature)
+- Python 3.11 (tested with 3.12 and 3.13, didn't work!)
+- OpenAI API key (not system critical but needed for AI plot analysis feature)
 
 ### Installation
 
