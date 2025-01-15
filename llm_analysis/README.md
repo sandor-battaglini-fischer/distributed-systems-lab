@@ -126,9 +126,7 @@ An interactive chat interface that allows users to analyze incident patterns and
 
 Example queries:
 
-- "What are the most common types of failures?"
-- "Which services had the longest downtime?"
-- "Analyze the pattern of authentication failures"
+- "Sort the service providers by number of incidents in total in the entire dataset and give the timeframe!"
 - "Tell me more about the impact levels of incidents"
 
 The analysis is powered by GPT-4o-mini and uses the historical incident data to provide data-backed insights.
