@@ -1,7 +1,7 @@
 # Analysing failures of Large Language Model services
 *FAILS: An automated analysis tool from a Distributed Systems perspective*
 
-**Lab Assignment for "Distributed Systems", Vrije Universiteit 2024**
+**Lab Assignment for "Distributed Systems", Vrije Universiteit 2024/2025**
 
 ---
 
