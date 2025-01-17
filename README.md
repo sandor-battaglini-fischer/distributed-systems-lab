@@ -13,7 +13,7 @@ Large Language Model (LLM) services have rapidly become essential tools for appl
 
 By [Nishanthi Srinivasan](mailto:n.srinivasan@student.vu.nl), [Bálint László Szarvas](mailto:b.l.szarvas@student.vu.nl) and [Sándor Battaglini-Fischer](mailto:s.battaglini-fischer@student.vu.nl).
 
-Many thanks to [Xiaoyu Chu](mailto:x.chu@vu.nl) and [Prof. Dr. Ir. Alexandru Iosup](a.iosup@vu.nl) for the support!
+Many thanks to [Xiaoyu Chu](mailto:x.chu@vu.nl) and [Prof. Dr. Ir. Alexandru Iosup](mailto:a.iosup@vu.nl) for the support!
 
 ---
 
