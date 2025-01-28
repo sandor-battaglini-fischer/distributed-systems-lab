@@ -76,6 +76,9 @@ def load_and_prepare_data(start_date, end_date, timestamp_columns=None):
     data_path = get_data_path_incident()
     print(f"Reading data from: {data_path}")
     
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"Data file not found at {data_path}")
+    
     df = pd.read_csv(data_path)
     print(f"Initial data loaded: {len(df)} rows")
     
@@ -84,11 +87,11 @@ def load_and_prepare_data(start_date, end_date, timestamp_columns=None):
         df = safe_convert_timezone(df, timestamp_columns)
         print(f"Timestamps converted to UTC")
     
-    # Filter by date range using investigating_timestamp
-    if 'investigating_timestamp' in df.columns:
+    # Filter by date range using start and close timestamps
+    if 'start_timestamp' in df.columns and 'close_timestamp' in df.columns:
         before_filter = len(df)
-        df = df[(df['investigating_timestamp'] >= start_date) & 
-                (df['investigating_timestamp'] <= end_date)]
+        df = df[(df['start_timestamp'] >= start_date) & 
+                (df['close_timestamp'] <= end_date)]
         print(f"Date filtering: {before_filter} -> {len(df)} rows")
     
     # Initialize service columns if they don't exist

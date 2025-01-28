@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from .utils import load_and_prepare_data
-import traceback
 
 def analyze_service_incidents(start_date, end_date, services):
     """
@@ -102,10 +101,9 @@ def analyze_service_incidents(start_date, end_date, services):
         impact_range_percent = impact_range_df.T.div(impact_range_df.T.sum(axis=1), axis=0) * 100
         impact_range_percent = impact_range_percent.round(2)
 
-        # Create a single figure with subplots
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 16))
-        
-        # Plot OpenAI data on first subplot
+        figures = {}
+
+        # Plot OpenAI service combinations
         service_labels = {
             'API-OpenAI': 'O1',
             'ChatGPT': 'O2',
@@ -122,6 +120,9 @@ def analyze_service_incidents(start_date, end_date, services):
         impacted_combinations_counts = openai_df['impacted_services_short_str'].value_counts()
 
         plt.rcParams.update({
+            #"text.usetex": True, #optional for latex
+            #"font.family": "serif", #optional for latex
+            #"text.latex.preamble": r"\usepackage{libertine}", #optional for latex   
             'font.size': 26,
             'axes.titlesize': 26,
             'axes.labelsize': 26,
@@ -148,7 +149,7 @@ def analyze_service_incidents(start_date, end_date, services):
         plt.xlabel("Number of Incidents", fontsize=26)
 
         label_text = "O1: API-OpenAI\nO2: ChatGPT\nO3: DALL-E\nO4: Playground"
-        ax1.text(
+        plt.text(
             0.99, 0.01, label_text,
             ha='right', va='bottom',
             transform=plt.gca().transAxes,
@@ -156,7 +157,10 @@ def analyze_service_incidents(start_date, end_date, services):
             bbox=dict(facecolor='white', alpha=0.9)
         )
 
-        # Plot Anthropic data on second subplot  
+        plt.tight_layout()
+        figures['openai'] = plt.gcf()
+
+        # Plot Anthropic service combinations
         service_labels = {
             'API-Anthropic': 'A1',
             'Claude': 'A2',
@@ -189,7 +193,7 @@ def analyze_service_incidents(start_date, end_date, services):
         plt.xlabel("Number of Incidents", fontsize=26)
 
         label_text = "A1: API-Anthropic\nA2: Claude\nA3: Console"
-        ax2.text(
+        plt.text(
             0.99, 0.01, label_text,
             ha='right', va='bottom',
             transform=plt.gca().transAxes,
@@ -247,6 +251,5 @@ def analyze_service_incidents(start_date, end_date, services):
         return figures
 
     except Exception as e:
-        print(f"Error in service incidents analysis: {str(e)}")
-        traceback.print_exc()
-        return None 
+        print(f"An error occurred: {str(e)}")
+        raise 

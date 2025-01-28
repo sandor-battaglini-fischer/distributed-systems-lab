@@ -43,12 +43,15 @@ def analyze_impact_levels(df, output_dir):
     df['incident_impact_level'] = pd.to_numeric(df['incident_impact_level'])
     df['start_timestamp'] = pd.to_datetime(df['start_timestamp'])
     timeframe_start = df['start_timestamp'].min()
-    timeframe_end = df['start_timestamp'].max()
+    #timeframe_end = df['start_timestamp'].max()
+    timeframe_end = pd.Timestamp('2024-12-08', tz='UTC')
     
     plt.style.use('default')
     sns.set_theme(style="whitegrid")
     plt.rcParams.update({
-        "font.family": "Helvetica",
+        "text.usetex": True,
+        "font.family": "serif",
+        "text.latex.preamble": r"\usepackage{libertine}",
         "font.size": 26,
         "axes.labelsize": 26,
         "axes.titlesize": 26,
@@ -74,7 +77,7 @@ def analyze_impact_levels(df, output_dir):
         x='provider',
         y='incident_impact_level',
         bw_method=0.5,
-        cut=0.8,
+        cut=0.6,
         density_norm='width',
         inner=None,
         alpha=0.5,
@@ -174,7 +177,7 @@ def analyze_impact_levels(df, output_dir):
     plt.grid(True, axis='y', alpha=0.2, linestyle='--')
     
     plt.savefig(
-        os.path.join(output_dir, 'impact_level_distribution_'+timeframe_str+'.png'), 
+        os.path.join(output_dir, 'impact_level_distribution_'+timeframe_str+'.pdf'), 
         dpi=300, 
         bbox_inches='tight', 
         facecolor='white',

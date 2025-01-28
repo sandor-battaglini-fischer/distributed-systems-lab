@@ -41,6 +41,9 @@ def analyze_mtbf_provider(start_date, end_date, selected_services):
 
         # Enhanced font sizes
         plt.rcParams.update({
+            #"text.usetex": True, #optional for latex
+            #"font.family": "serif", #optional for latex
+            #"text.latex.preamble": r"\usepackage{libertine}", #optional for latex
             'font.size': 26,
             'axes.titlesize': 26,
             'axes.labelsize': 26,
